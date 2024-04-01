@@ -1,6 +1,7 @@
 import re
 import os
-
+from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME
+from tokenize import open as topen;
 """
 Python module for converting bython code to python code.
 """
@@ -89,6 +90,10 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
         change_imports (dict):      Names of imported bython modules, and their 
                                     python alternative.
     """
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
+
+    string_regex = re.compile(r'"([^"\n]|(\\"))*"')
+    
     filename = os.path.basename(filepath)
     filedir = os.path.dirname(filepath)
 
@@ -97,15 +102,46 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
 
     indentation_level = 0
     indentation_sign = "    "
+    line_number = 0
+    current_line = ""
 
     if add_true_line:
         outfile.write("true=True; false=False;\n")
+    
+    tokenfile = open(filepath, 'rb')
+    tokens = list(tokenize(tokenfile.readline))
+    tokens.pop(0)
+    
+    for i, j in enumerate(tokens):
+        #write line with indentation
+        
+        if j.string == "{":
+            indentation_level += 1
+            current_line += ":"
+        elif j.string == "}":
+            indentation_level -= 1
 
-    # Read file to string
-    infile_str_raw = ""
-    for line in infile:
-        infile_str_raw += line
+        #check for && and replace with and
+        elif j.string == "&" and tokens[i+1].string == "&":
+            current_line += " and "
+        elif j.string == "&" and tokens[i-1].string == "&":
+            pass
+        
+        #check for || and replace with or
+        elif j.string == "|" and tokens[i+1].string == "|":
+            current_line += " or "
+        elif j.string == "|" and tokens[i-1].string == "|":
+            pass
 
+        else:
+            current_line += j.string
+
+        if j.string == "\n":
+            outfile.write(current_line)
+            current_line = indentation_level * indentation_sign
+
+    infile.close()
+    outfile.close()
     # Add 'pass' where there is only a {}. 
     # 
     # DEPRECATED FOR NOW. This way of doing
@@ -113,7 +149,10 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
     # until I find another way to do it. 
     
     # infile_str_raw = re.sub(r"{[\s\n\r]*}", "{\npass\n}", infile_str_raw)
+    
 
+
+""" Complete garbage, exists solely for reference from now on
     # Fix indentation
     infile_str_indented = ""
     for line in infile_str_raw.split("\n"):
@@ -142,18 +181,28 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
         line = line.lstrip()
         
         # Check for reduced indent level
-        for i in list(line):
-            if i == "}":
-                indentation_level -= 1
+        for i, j in enumerate(list(line)):
+            if (j == "}"):
+                brace_inside_string = False
+                for k in string_regex.finditer(line): #check if curly brace is inside string
+                    if (k.span()[0] < i and i < k.span()[1]):
+                        brace_inside_string = True
+                if (not brace_inside_string):
+                    indentation_level -= 1
 
         # Add indentation
         for i in range(indentation_level):
             line = indentation_sign + line
 
         # Check for increased indentation
-        for i in list(line):
-            if i == "{":
-                indentation_level += 1
+        for i, j in enumerate(list(line)):
+            if j == "{":
+                brace_inside_string = False
+                for k in string_regex.finditer(line): #check if curly brace is inside string
+                    if (k.span()[0] < i and i < k.span()[1]):
+                        brace_inside_string = True
+                if (not brace_inside_string):
+                    indentation_level += 1
 
         # Replace { with : and remove }
         line = re.sub(r"[\t ]*{[ \t]*", ":", line)
@@ -176,4 +225,4 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
     outfile.write(infile_str_indented)
 
     infile.close()
-    outfile.close()
+    outfile.close()"""
