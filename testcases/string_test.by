@@ -1,5 +1,5 @@
 def main() {
-
+#this is a comment
 	if(True) {
 		print("These should be quotes: {}");
 	}

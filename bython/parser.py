@@ -90,7 +90,6 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
         change_imports (dict):      Names of imported bython modules, and their 
                                     python alternative.
     """
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
     string_regex = re.compile(r'"([^"\n]|(\\"))*"')
     
@@ -112,7 +111,7 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
     tokens.pop(0)
     
     for i, j in enumerate(tokens):
-        print(j)
+        #print(j)
         #write line with indentation
         
         if j.string == "{":
@@ -135,10 +134,12 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
 
         else:
             current_line += j.string
-        
+
+
+        #adds a space after NAME tokens, so def main doesnt become defmain
         if j.type == 1:
             current_line += " "
-
+        #on a newline, write the current line and restart
         if j.string == "\n":
             outfile.write(current_line)
             current_line = indentation_level * indentation_sign
