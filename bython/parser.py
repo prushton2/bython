@@ -102,7 +102,6 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
 
     indentation_level = 0
     indentation_sign = "    "
-    line_number = 0
     current_line = ""
 
     if add_true_line:
@@ -113,6 +112,7 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
     tokens.pop(0)
     
     for i, j in enumerate(tokens):
+        print(j)
         #write line with indentation
         
         if j.string == "{":
@@ -135,6 +135,9 @@ def parse_file(filepath, add_true_line, filename_prefix, outputname=None, change
 
         else:
             current_line += j.string
+        
+        if j.type == 1:
+            current_line += " "
 
         if j.string == "\n":
             outfile.write(current_line)

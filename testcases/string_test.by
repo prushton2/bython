@@ -1,7 +1,14 @@
-if(True) {
-	print("These should be quotes: {}");
+def main() {
+
+	if(True) {
+		print("These should be quotes: {}");
+	}
+
+	if(True && True) {
+		print("true and true is true");
+	}
 }
 
-if(True && True) {
-	print("true and true is true");
+if(__name__ == "__main__") {
+	main();
 }
