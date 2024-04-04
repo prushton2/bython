@@ -68,11 +68,13 @@ def main():
 
     # Ensure existence of a build directory
     if cmd_args.output == None:
-        cmd_args.output = "build/"
-    # Delete Build Directory
+        cmd_args.output = ["build/"]
+    elif not cmd_args.output[0].endswith("/"):
+        cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
     
+    # Delete Build Directory
     try:
-        shutil.rmtree(cmd_args.output)
+        shutil.rmtree(cmd_args.output[0])
     except PermissionError:
         print("Permission denied. Unable to delete the directory.")
         sys.exit(1)
@@ -81,17 +83,30 @@ def main():
 
     # Ensure existence of entry point
     if cmd_args.entry_point == None:
-        cmd_args.entry_point = "main.py"
+        cmd_args.entry_point = ["main.py"]
+
     # Iterate over all files, converting them to .py
     tld = Path(cmd_args.input[0])
     source_files = list(tld.glob("**/*.by"))
 
+
+    #this happens when a file is given, rather than a directory
+    if source_files == []: 
+        Path(cmd_args.output[0]).mkdir(parents=True,exist_ok=True)
+        parser.parse_file(str(tld),"./"+cmd_args.output[0]+"main.py", cmd_args.truefalse)
+
+        if not cmd_args.compile:
+            subprocess.run(["python", "./"+cmd_args.output[0]+"main.py"])
+            shutil.rmtree(cmd_args.output[0])
+        sys.exit(1) #exit when done
+    
+    #assuming the above guard clause didnt run, we have a directory.
     for i in source_files:
         dest_file = str(i)
         
         if str(i).startswith(str(tld)): # remove preceeding file path
             dest_file = str(i)[len(str(tld))+1:]
-        dest_file = Path(cmd_args.output + dest_file) #add output directory
+        dest_file = Path(cmd_args.output[0] + dest_file) #add output directory
     
         #mkdir -p equivalent so parser doesnt fail
         dest_file.mkdir(parents=True, exist_ok=True)
@@ -102,7 +117,10 @@ def main():
         parser.parse_file(str(i), dest_file_string, cmd_args.truefalse)
 
     if not cmd_args.compile:
-        subprocess.run(["python", "./"+cmd_args.output+cmd_args.entry_point[0]])
+        if not os.path.isfile("./"+cmd_args.output[0]+cmd_args.entry_point[0]):
+            print("Entry point file not found ("+"./"+cmd_args.output[0]+cmd_args.entry_point[0]+")\n\nSet the entry point with --entry-point\n")
+            sys.exit(1)
+        subprocess.run(["python", "./"+cmd_args.output[0]+cmd_args.entry_point[0]])
 
 if __name__ == '__main__':
     main()
