@@ -3,11 +3,11 @@ import argparse
 import os
 import sys
 import shutil
+import subprocess
 
 from pathlib import Path
 
 import parser
-import logger as Logger
 VERSION_NUMBER = "1.0"
 """
 Bython is Python with braces.
@@ -66,23 +66,19 @@ def main():
     # Parse arguments
     cmd_args = argparser.parse_args()
 
-   # Create logger
-   #logger = Logger(cmd_args.verbose)
-   # Check for invalid combination of flags
-   #if cmd_args.output is not None and cmd_args.compile is False:
-   #    logger.log_error("Cannot specify output when bython is not in compile mode")
-   #    sys.exit(1)
-      
-
     # Ensure existence of a build directory
     if cmd_args.output == None:
         cmd_args.output = "build/"
     # Delete Build Directory
+    
     try:
         shutil.rmtree(cmd_args.output)
     except PermissionError:
         print("Permission denied. Unable to delete the directory.")
         sys.exit(1)
+    except:
+        pass
+
     # Ensure existence of entry point
     if cmd_args.entry_point == None:
         cmd_args.entry_point = "main.py"
@@ -97,13 +93,16 @@ def main():
             dest_file = str(i)[len(str(tld))+1:]
         dest_file = Path(cmd_args.output + dest_file) #add output directory
     
-        dest_file.mkdir(parents=True, exist_ok=True) #mkdir -p equivalent so parser doesnt fail
+        #mkdir -p equivalent so parser doesnt fail
+        dest_file.mkdir(parents=True, exist_ok=True)
+        
         dest_file.rmdir() # remove ending directory so file can be put there
         dest_file_string = str(dest_file)[0:-3] + ".py"
 
-        parser.parse_file(str(i), dest_file_string, False)
+        parser.parse_file(str(i), dest_file_string, cmd_args.truefalse)
 
-        
+    if not cmd_args.compile:
+        subprocess.run(["python", "./"+cmd_args.output+cmd_args.entry_point[0]])
 
 if __name__ == '__main__':
     main()

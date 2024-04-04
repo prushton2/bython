@@ -102,7 +102,7 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
     current_line = ""
 
     if add_true_line:
-        outfile.write("true=True; false=False;\n")
+        outfile.write("true=True; false=False; null=None\n")
     
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
