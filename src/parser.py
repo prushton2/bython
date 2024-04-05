@@ -117,6 +117,8 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
             current_line += ":"
         elif j.string == "}":
             indentation_level -= 1
+            outfile.write(current_line + "\n");
+            current_line = indentation_level * indentation_sign
 
         #check for && and replace with and
         elif j.string == "&" and tokens[i+1].string == "&":
