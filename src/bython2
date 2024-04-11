@@ -85,33 +85,47 @@ def main():
     if cmd_args.entry_point == None:
         cmd_args.entry_point = ["main.py"]
     
-    # We are parsing a single file
-    if cmd_args.input[0].endswith(".by"):
-        Path(cmd_args.output[0]).mkdir()
-        parser.parse_file(cmd_args.input[0], cmd_args.output[0]+"main.py", cmd_args.truefalse)
+    Path("./build").mkdir(parents=True,exist_ok=True)
+
+    # Copy source dir to build dir
+    subprocess.run(["cp", "-r", cmd_args.input[0]+"/", cmd_args.output[0]]+"/")
+
+    # Iterate over all files, converting them to .py
+    tld = Path(cmd_args.output[0])
+    source_files = list(tld.glob("**/*.by"))
+
+    #this happens when a file is given, rather than a directory
+    if source_files == []: 
+        parser.parse_file(str(tld),"./"+cmd_args.output[0]+"main.py", cmd_args.truefalse)
+        shutil.rm("./"+cmd_args.output[0]+"main.by");
+
         if not cmd_args.compile:
-            subprocess.run(["python", "build/main.py"])
-        return
-
-    # we are not parsing a single file, so do the whole directory thing
-    tld = Path(cmd_args.input[0])
-    files = list(tld.glob("**/*"))
-
-    for i in files:
-        source_file = str(i)
-        dest_file = cmd_args.output[0]+"/".join(str(i).split("/")[1:])
-        #print(source_file, "->", dest_file)
-        # just copy it over
-        subprocess.run(["mkdir", "-p", "/".join(dest_file.split("/")[0:-1]) ])
-        if not str(i).endswith(".by"):
-            # its ok if this fails. It only fails on directories, which are made in the previous line
-            subprocess.run(["cp", source_file, dest_file], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        else:
-            dest_file = dest_file[0:-3] + ".py"
-            parser.parse_file(source_file, dest_file, cmd_args.truefalse)
+            subprocess.run(["python", "./"+cmd_args.output[0]+"main.py"])
+            shutil.rmtree(cmd_args.output[0])
+        sys.exit(1) #exit when done
     
+    #assuming the above guard clause didnt run, we have a directory.
+    for i in source_files:
+        dest_file = str(i)
+        
+        if str(i).startswith(str(tld)): # remove preceeding file path
+            dest_file = str(i)[len(str(tld))+1:]
+        dest_file = Path(cmd_args.output[0] + dest_file) #add output directory
+
+        #mkdir -p equivalent so parser doesnt fail
+        dest_file.mkdir(parents=True, exist_ok=True)
+        
+        dest_file.rmdir() # remove ending directory so file can be put there
+
+        dest_file_string = str(dest_file)[0:-3] + ".py"
+
+        parser.parse_file(str(i), dest_file_string, cmd_args.truefalse)
+
     if not cmd_args.compile:
-        subprocess.run(["python", cmd_args.output[0]+cmd_args.entry_point[0]])
+        if not os.path.isfile("./"+cmd_args.output[0]+cmd_args.entry_point[0]):
+            print("Entry point file not found ("+"./"+cmd_args.output[0]+cmd_args.entry_point[0]+")\n\nSet the entry point with --entry-point\n")
+            sys.exit(1)
+        subprocess.run(["python", "./"+cmd_args.output[0]+cmd_args.entry_point[0]])
 
 if __name__ == '__main__':
     main()
