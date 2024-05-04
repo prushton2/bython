@@ -3,15 +3,6 @@ Python with braces. Because Python is awesome, but whitespace is awful.
 
 Bython is a Python preprosessor which translates curly brackets into indentation.
 
-
-## Content of README:
-  * [Key features](#key-features)
-  * [Code example](#code-example)
-  * [Installation](#installation)
-  * [Quick intro](#quick-intro)
-  * [Structure of the repository](#structure-of-the-repository)
-
-
 ## Key features
 
 * Write Python using braces instead of whitespace, and use the transpiler to convert it to valid Python code
