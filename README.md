@@ -29,7 +29,7 @@ if __name__ == "__main__" {
 Clone the repo with
 `git clone https://github.com/prushton2/bython`
 
-# Linux
+### Linux
 Using the makefile, run
 `sudo make install`
 
