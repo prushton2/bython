@@ -26,10 +26,13 @@ if __name__ == "__main__" {
 
 ## Installation
 
+### Linux
+Prerequisites:
+* Python
+* Pyinstaller
 Clone the repo with
 `git clone https://github.com/prushton2/bython`
 
-### Linux
 Using the makefile, run
 `sudo make install`
 
