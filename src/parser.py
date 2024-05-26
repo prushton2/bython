@@ -108,10 +108,24 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
     tokens = list(tokenize(tokenfile.readline))
     tokens.pop(0)
     
+    # some control variables to make sure we dont parse content in fstrings and dict definitions
+    
+    inside_fstring = False
+    inside_dict = False
+
     for i, j in enumerate(tokens):
-        #print(j)
+        #print(j) #61 and 63
         #write line with indentation
         
+        if(j.type == 61):
+            inside_fstring = True
+        elif(j.type == 63):
+            inside_fstring = False
+
+        if(inside_fstring): # No processing is needed inside an fstring
+            current_line += j.string
+            continue;
+
         if j.string == "{":
             indentation_level += 1
             current_line += ":"
@@ -123,14 +137,15 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
         #check for && and replace with and
         elif j.string == "&" and tokens[i+1].string == "&":
             current_line += " and "
-        elif j.string == "&" and tokens[i-1].string == "&":
-            pass
         
+        elif j.string == "&" and tokens[i-1].string == "&":
+            continue
+
         #check for || and replace with or
         elif j.string == "|" and tokens[i+1].string == "|":
             current_line += " or "
         elif j.string == "|" and tokens[i-1].string == "|":
-            pass
+            continue
 
         else:
             current_line += j.string
