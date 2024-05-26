@@ -1,7 +1,10 @@
 def main() {
 #this is a comment
 	if(True) {
-		print("These should be quotes: {}");
+    x = 7
+    y = 10
+		print("These should be braces: {}");
+    print(f"this is an fstring, x = {x} and y = {y}")
 	}
 
 	if(True && True) {
@@ -15,6 +18,7 @@ def main() {
     } else {
         print("x isnt 2"); }
 }
+
 
 if(__name__ == "__main__") {
 	main();
