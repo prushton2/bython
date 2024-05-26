@@ -91,41 +91,48 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
                                     python alternative.
     """
 
-   #filename = os.path.basename(filepath)
-   #filedir = os.path.dirname(filepath)
-
+    #filename = os.path.basename(filepath)
+    #filedir = os.path.dirname(filepath)
+    
     infile = open(infilepath, 'r')
     outfile = open(outfilepath, 'w')
-
+    
     indentation_level = 0
     indentation_sign = "    "
     current_line = ""
-
+    
     if add_true_line:
         outfile.write("true=True; false=False; null=None\n")
     
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
     tokens.pop(0)
-    
-    # some control variables to make sure we dont parse content in fstrings and dict definitions
-    
+     
+     # some control variables to make sure we dont parse content in fstrings and dict definitions
+     
     inside_fstring = False
     inside_dict = False
-
+    
     for i, j in enumerate(tokens):
-        #print(j) #61 and 63
+        print(j) #61 and 63
         #write line with indentation
         
         if(j.type == 61):
             inside_fstring = True
         elif(j.type == 63):
             inside_fstring = False
-
-        if(inside_fstring): # No processing is needed inside an fstring
+        
+        if(j.string == '=' and tokens[i+1].string == '{'):
+            inside_dict = True
+        if(inside_dict and tokens[i-1].string == '}'): # We check if the previous token was the end, and then we can continue parsing
+            inside_dict = False
+         
+         
+         
+        if(inside_fstring or inside_dict): # No processing should be done inside an fstring
             current_line += j.string
             continue;
-
+    
         if j.string == "{":
             indentation_level += 1
             current_line += ":"
@@ -133,24 +140,24 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
             indentation_level -= 1
             outfile.write(current_line + "\n");
             current_line = indentation_level * indentation_sign
-
+    
         #check for && and replace with and
         elif j.string == "&" and tokens[i+1].string == "&":
             current_line += " and "
         
         elif j.string == "&" and tokens[i-1].string == "&":
             continue
-
+    
         #check for || and replace with or
         elif j.string == "|" and tokens[i+1].string == "|":
             current_line += " or "
         elif j.string == "|" and tokens[i-1].string == "|":
             continue
-
+    
         else:
             current_line += j.string
-
-
+    
+    
         #adds a space after NAME tokens, so def main doesnt become defmain
         if j.type == 1:
             current_line += " "
@@ -158,7 +165,7 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
         if j.string == "\n":
             outfile.write(current_line)
             current_line = indentation_level * indentation_sign
-
+    
     infile.close()
     outfile.close()
     # Add 'pass' where there is only a {}. 
@@ -168,80 +175,3 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
     # until I find another way to do it. 
     
     # infile_str_raw = re.sub(r"{[\s\n\r]*}", "{\npass\n}", infile_str_raw)
-    
-
-
-""" Complete garbage, exists solely for reference from now on
-    # Fix indentation
-    infile_str_indented = ""
-    for line in infile_str_raw.split("\n"):
-        # Search for comments, and remove for now. Re-add them before writing to
-        # result string
-        m = re.search(r"[ \t]*(#.*$)", line)
-
-        # Make sure # sign is not inside quotations. Delete match object if it is
-        if m is not None:
-            m2 = re.search(r"[\"'].*#.*[\"']", m.group(0))
-            if m2 is not None:
-                m = None
-
-        if m is not None:
-            add_comment = m.group(0)
-            line = re.sub(r"[ \t]*(#.*$)", "", line)
-        else:
-            add_comment = ""
-
-        # skip empty lines:
-        if line.strip() in ('\n', '\r\n', ''):
-            infile_str_indented += indentation_level*indentation_sign + add_comment.lstrip() + "\n"
-            continue
-
-        # remove existing whitespace:
-        line = line.lstrip()
-        
-        # Check for reduced indent level
-        for i, j in enumerate(list(line)):
-            if (j == "}"):
-                brace_inside_string = False
-                for k in string_regex.finditer(line): #check if curly brace is inside string
-                    if (k.span()[0] < i and i < k.span()[1]):
-                        brace_inside_string = True
-                if (not brace_inside_string):
-                    indentation_level -= 1
-
-        # Add indentation
-        for i in range(indentation_level):
-            line = indentation_sign + line
-
-        # Check for increased indentation
-        for i, j in enumerate(list(line)):
-            if j == "{":
-                brace_inside_string = False
-                for k in string_regex.finditer(line): #check if curly brace is inside string
-                    if (k.span()[0] < i and i < k.span()[1]):
-                        brace_inside_string = True
-                if (not brace_inside_string):
-                    indentation_level += 1
-
-        # Replace { with : and remove }
-        line = re.sub(r"[\t ]*{[ \t]*", ":", line)
-        line = re.sub(r"}[ \t]*", "", line)
-        line = re.sub(r"\n:", ":", line)
-
-        infile_str_indented += line + add_comment + "\n"
-
-
-    # Support for extra, non-brace related stuff
-    infile_str_indented = re.sub(r"else\s+if", "elif", infile_str_indented)
-    infile_str_indented = re.sub(r";\n", "\n", infile_str_indented)
-
-    # Change imported names if necessary
-    if change_imports is not None:
-        for module in change_imports:
-            infile_str_indented = re.sub("(?<=import\\s){}".format(module), "{} as {}".format(change_imports[module], module), infile_str_indented)
-            infile_str_indented = re.sub("(?<=from\\s){}(?=\\s+import)".format(module), change_imports[module], infile_str_indented)
-
-    outfile.write(infile_str_indented)
-
-    infile.close()
-    outfile.close()"""
