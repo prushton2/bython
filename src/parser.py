@@ -114,7 +114,7 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
     inside_dict = False
     
     for i, j in enumerate(tokens):
-        print(j) #61 and 63
+        #print(j) #61 and 63
         #write line with indentation
         
         if(j.type == 61):
