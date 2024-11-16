@@ -1,7 +1,7 @@
 install:
-	pyinstaller --onefile ./src/bython
+	pyinstaller --onefile ./src/bython.py
 	mv ./dist/bython /bin/bython
-	pyinstaller --onefile ./src/py2by
+	pyinstaller --onefile ./src/py2by.py
 	mv ./dist/py2by /bin/py2by
 	make clean
 clean:
