@@ -6,7 +6,6 @@ import sys
 from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME
 
 from bython import VERSION_NUMBER
-from bython.logger import Logger
 
 
 def ends_in_py(word):
@@ -227,8 +226,6 @@ def main():
 
     cmd_args = argparser.parse_args()
 
-    logger = Logger()
-
     try:
         outputname = cmd_args.output[0] if cmd_args.output is not None else change_file_name(cmd_args.input[0], None)
 
@@ -245,10 +242,10 @@ def main():
         os.remove(cmd_args.input[0]+".py2bytemp")
 
     except FileNotFoundError:
-        logger.log_error("No file named %s" % cmd_args.input[0])
+        print("No file named %s" % cmd_args.input[0])
 
     except Exception as e:
-        logger.log_error("Unexpected error: %s" % str(e))
+        print("Unexpected error: %s" % str(e))
         sys.exit(1)
 
 
