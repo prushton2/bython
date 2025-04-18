@@ -11,3 +11,5 @@ clean:
 uninstall:
 	rm /bin/bython
 	rm /bin/by2py
+test:
+	python ./testcases/main.py

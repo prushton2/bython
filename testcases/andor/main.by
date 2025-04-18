@@ -1,0 +1,15 @@
+def main() {
+    a = True
+    b = True
+    if(a && b) {
+        print("and!")
+    } 
+
+    if(a || b) {
+        print("or!")
+    }
+}
+
+if(__name__ == "__main__") {
+    main();
+}
