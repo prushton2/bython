@@ -46,7 +46,7 @@ def main():
     else:
         print(f"{colorama.Fore.RED}{colorama.Style.BRIGHT} {totaltests - testspassed} TEST{"" if totaltests - testspassed == 1 else "S"} FAILED{colorama.Fore.RESET}\n\n")
 
-
+    print(colorama.Style.NORMAL)
 
 if(__name__ == "__main__"):
     sys.path.append("..")
