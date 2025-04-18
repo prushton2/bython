@@ -97,6 +97,9 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
 
+    # for i in tokens:
+    #     print(i)
+
     tokens.pop(0) #this is the encoding scheme which i dont care about (hopefully)
 
     newTokens = parse_indentation(tokens)
@@ -134,6 +137,7 @@ def parse_indentation(tokens):
     newTokens = []
     indentationLevel = 0
     mapdepth = 0
+    fstringdepth = 0
 
     for i, j in enumerate(tokens):
         
@@ -157,6 +161,23 @@ def parse_indentation(tokens):
 
         # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
         if(mapdepth != 0):
+            continue
+
+        # Similar logic for fstrings: We check for entry, check if inside to push the token, and check for exit
+        # Im not sure if this is the best way to do it, but it works
+
+        if(j.type == 59):
+            fstringdepth += 1
+        
+        if(fstringdepth >= 1):
+            newTokens.append(j)
+        
+        if(j.type == 61):
+            fstringdepth -= 1
+            # newTokens.append(j)
+            continue
+
+        if(fstringdepth != 0):
             continue
 
         if (j.string == "{"):
