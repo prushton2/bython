@@ -16,8 +16,7 @@ def main():
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:
-            # print(file.read())
-            command = ["python", "src/bython.py", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-c"]
+            command = ["python", "src/bython.py", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-c", "-t"]
 
             subprocess.run(command)
             

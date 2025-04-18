@@ -72,7 +72,7 @@ def parse_imports(filename):
     return imports_with_suffixes
 
 
-def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_imports=None):
+def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_imports=None):
     """
     Converts a bython file to a python file and writes it to disk.
 
@@ -91,96 +91,23 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
                                     python alternative.
     """
 
-    #filename = os.path.basename(filepath)
-    #filedir = os.path.dirname(filepath)
-    
     infile = open(infilepath, 'r')
     outfile = open(outfilepath, 'w')
-    
-    indentation_level = 0
-    indentation_sign = "    "
-    current_line = ""
-    
-    if add_true_line:
-        outfile.write("true=True; false=False; null=None\n")
     
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
 
-    tokens.pop(0)
+    tokens.pop(0) #this is the encoding scheme which i dont care about (hopefully)
 
     newTokens = parse_indentation(tokens)
     
     newTokens = parse_and_or(newTokens)
 
-    # some control variables to make sure we dont parse content in fstrings and dict definitions
-     
-    # inside_fstring = False
-    # dict_layer = 0
-    
-    # for i, j in enumerate(tokens):
-        #print(j) #61 and 63
-        #write line with indentation
-        
-        # if(j.type == 61):
-        #     inside_fstring = True
-        # elif(j.type == 63):
-        #     inside_fstring = False
-        
-        # if(i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == '=' and j.string == '{'):
-        #     dict_layer = 1
-        #     # current_line += j.string
-
-        # elif(dict_layer >= 1 and tokens[i].string == '{'):
-        #     dict_layer += 1
-        #     # current_line += j.string
+    if(parsetruefalse):
+        newTokens = parse_true_false(newTokens)
 
 
-        # elif(dict_layer >= 1 and tokens[i].string == '}'):
-        #     dict_layer -= 1
-        #     if(dict_layer == 0):
-        #         current_line += j.string
-
-        
-        # if(inside_fstring or dict_layer >= 1): # No processing should be done inside an fstring
-        #     # print(j.string)
-        #     current_line += j.string
-        #     continue
-    
-        # if j.string == "{":
-        #     indentation_level += 1
-        #     current_line += ":"
-        # elif j.string == "}":
-        #     indentation_level -= 1
-        #     outfile.write(current_line + "\n");
-        #     current_line = indentation_level * indentation_sign
-    
-        #check for && and replace with and
-        # elif j.string == "&" and tokens[i+1].string == "&":
-        #     current_line += " and "
-        
-        # elif j.string == "&" and tokens[i-1].string == "&":
-        #     continue
-    
-        # #check for || and replace with or
-        # elif j.string == "|" and tokens[i+1].string == "|":
-        #     current_line += " or "
-        # elif j.string == "|" and tokens[i-1].string == "|":
-        #     continue
-    
-        # else:
-        #     current_line += j.string
-    
-    
-        #adds a space after NAME tokens, so def main doesnt become defmain
-        # if j.type == 1:
-        #     current_line += " "
-        # #on a newline, write the current line and restart
-        # if j.string == "\n":
-        #     outfile.write(current_line)
-        #     current_line = indentation_level * indentation_sign
     for(i, j) in enumerate(newTokens):
-        # print(j)
         outfile.write(j.string)
         if(j.type == 1):
             outfile.write(" ")
@@ -290,6 +217,39 @@ def parse_and_or(tokens):
             )
             continue
         if(j.string == "|" and tokens[i-1].string == "|"):
+            continue
+
+        newTokens.append(j)
+    return newTokens
+
+
+
+def parse_true_false(tokens):
+    newTokens = []
+
+    for i, j in enumerate(tokens):
+        if(j.string == "true"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="True",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            continue
+        
+        if(j.string == "false"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="False",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
             continue
 
         newTokens.append(j)
