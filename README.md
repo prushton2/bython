@@ -41,6 +41,13 @@ Using the makefile, run
 $ sudo make install
 ```
 
+This installs `/bin/bython` and `/bin/py2by`
+
+To uninstall, run
+```
+sudo make uninstall
+```
+
 
 ## Quick intro
 
