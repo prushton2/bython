@@ -1,0 +1,11 @@
+map_example = {
+    "a": "b"
+}
+
+def main() {
+    print(map_example["a"])
+}
+
+if(__name__ == "__main__") {
+    main()
+}

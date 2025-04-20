@@ -1,6 +1,6 @@
 import re
 import os
-from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME
+from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, TokenInfo
 from tokenize import open as topen;
 """
 Python module for converting bython code to python code.
@@ -72,7 +72,7 @@ def parse_imports(filename):
     return imports_with_suffixes
 
 
-def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_imports=None):
+def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_imports=None):
     """
     Converts a bython file to a python file and writes it to disk.
 
@@ -91,87 +91,202 @@ def parse_file(infilepath, outfilepath, add_true_line,  utputname=None, change_i
                                     python alternative.
     """
 
-    #filename = os.path.basename(filepath)
-    #filedir = os.path.dirname(filepath)
-    
     infile = open(infilepath, 'r')
     outfile = open(outfilepath, 'w')
     
-    indentation_level = 0
-    indentation_sign = "    "
-    current_line = ""
-    
-    if add_true_line:
-        outfile.write("true=True; false=False; null=None\n")
-    
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
-    tokens.pop(0)
-     
-     # some control variables to make sure we dont parse content in fstrings and dict definitions
-     
-    inside_fstring = False
-    inside_dict = False
+
+    # for i in tokens:
+    #     print(i)
+
+    tokens.pop(0) #this is the encoding scheme which i dont care about (hopefully)
+
+    newTokens = parse_indentation(tokens)
     
-    for i, j in enumerate(tokens):
-        #print(j) #61 and 63
-        #write line with indentation
-        
-        if(j.type == 61):
-            inside_fstring = True
-        elif(j.type == 63):
-            inside_fstring = False
-        
-        if(j.string == '=' and tokens[i+1].string == '{'):
-            inside_dict = True
-        if(inside_dict and tokens[i-1].string == '}'): # We check if the previous token was the end, and then we can continue parsing
-            inside_dict = False
-         
-         
-         
-        if(inside_fstring or inside_dict): # No processing should be done inside an fstring
-            current_line += j.string
-            continue;
-    
-        if j.string == "{":
-            indentation_level += 1
-            current_line += ":"
-        elif j.string == "}":
-            indentation_level -= 1
-            outfile.write(current_line + "\n");
-            current_line = indentation_level * indentation_sign
-    
-        #check for && and replace with and
-        elif j.string == "&" and tokens[i+1].string == "&":
-            current_line += " and "
-        
-        elif j.string == "&" and tokens[i-1].string == "&":
-            continue
-    
-        #check for || and replace with or
-        elif j.string == "|" and tokens[i+1].string == "|":
-            current_line += " or "
-        elif j.string == "|" and tokens[i-1].string == "|":
-            continue
-    
-        else:
-            current_line += j.string
-    
-    
-        #adds a space after NAME tokens, so def main doesnt become defmain
-        if j.type == 1:
-            current_line += " "
-        #on a newline, write the current line and restart
-        if j.string == "\n":
-            outfile.write(current_line)
-            current_line = indentation_level * indentation_sign
-    
+    newTokens = parse_and_or(newTokens)
+
+    if(parsetruefalse):
+        newTokens = parse_true_false(newTokens)
+
+
+    for(i, j) in enumerate(newTokens):
+        outfile.write(j.string)
+        if(j.type == 1):
+            outfile.write(" ")
+
     infile.close()
     outfile.close()
-    # Add 'pass' where there is only a {}. 
-    # 
-    # DEPRECATED FOR NOW. This way of doing
-    # it is causing a lot of problems with {} in comments. The feature is removed
-    # until I find another way to do it. 
+
+def gen_indent(indentationLevel):
+    arr = []
+    for i in range(indentationLevel):
+        arr.append(
+            TokenInfo(
+                type=5,
+                string='    ',
+                start=(),
+                end=(),
+                line=""
+            )
+        )
+
+    return arr
+
+def parse_indentation(tokens):
+    newTokens = []
+    indentationLevel = 0
+    mapdepth = 0
+    fstringdepth = 0
+
+    for i, j in enumerate(tokens):
+        
+        # We find the start of a map. We need to set depth to 1, add the { token, and done
+        if( i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == "=" and j.string == "{"):
+            mapdepth = 1
+            newTokens.append(j)
+            continue
+
+        # We're inside a map, so we add the token
+        if(mapdepth >= 1):
+            newTokens.append(j)
+
+        # We update how deep we are in the map. If this changes, we're done 
+        if( i >= 2 and mapdepth >= 1 and tokens[i].string == "{"):
+            mapdepth += 1
+            continue
+        if( i >= 2 and mapdepth >= 1 and tokens[i].string == "}"):
+            mapdepth -= 1
+            continue
+
+        # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
+        if(mapdepth != 0):
+            continue
+
+        # Similar logic for fstrings: We check for entry, check if inside to push the token, and check for exit
+        # Im not sure if this is the best way to do it, but it works
+
+        if(j.type == 59):
+            fstringdepth += 1
+        
+        if(fstringdepth >= 1):
+            newTokens.append(j)
+        
+        if(j.type == 61):
+            fstringdepth -= 1
+            continue
+
+        if(fstringdepth != 0):
+            continue
+
+        if (j.string == "{"):
+            indentationLevel += 1
+            newTokens.append(
+                TokenInfo(
+                    type=55,
+                    string=":",
+                    start=j.start,
+                    end=j.end,
+                    line=j.line
+                )
+            )
+            continue
+
+        if(j.string == "}"):
+            indentationLevel -= 1
+            i = -1
+            prevToken = newTokens[-1]
+            
+            while prevToken.type in [4,5,63]:
+                i -= 1
+                prevToken = newTokens[i]
+
+            
+            if(prevToken.string == ":"):
+                newTokens.append(
+                    TokenInfo(
+                        type=1,
+                        string="pass",
+                        start=(),
+                        end=(),
+                        line=""
+                    )
+                )
+            continue
+        
+
+        newTokens.append(j)
+
+        if(newTokens[-1].string == "\n"):
+            newTokens.extend(gen_indent(indentationLevel))
     
-    # infile_str_raw = re.sub(r"{[\s\n\r]*}", "{\npass\n}", infile_str_raw)
+    return newTokens
+
+
+def parse_and_or(tokens):
+    newTokens = []
+
+    for i, j in enumerate(tokens):
+        if(j.string == "&" and tokens[i+1].string == "&"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="and",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            continue
+        if(j.string == "&" and tokens[i-1].string == "&"):
+            continue
+        
+        if(j.string == "|" and tokens[i+1].string == "|"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="or",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            continue
+        if(j.string == "|" and tokens[i-1].string == "|"):
+            continue
+
+        newTokens.append(j)
+    return newTokens
+
+
+
+def parse_true_false(tokens):
+    newTokens = []
+
+    for i, j in enumerate(tokens):
+        if(j.string == "true"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="True",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            continue
+        
+        if(j.string == "false"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="False",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            continue
+
+        newTokens.append(j)
+    return newTokens
