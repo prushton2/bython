@@ -1,5 +1,9 @@
 def main() {}
 
+def main2() {
+    
+}
+
 def second() {
     print("done")
 }

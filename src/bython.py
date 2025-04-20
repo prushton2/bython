@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 import parser
-VERSION_NUMBER = "1.0"
+VERSION_NUMBER = "1.1"
 """
 Bython is Python with braces.
 
@@ -33,10 +33,10 @@ def main():
         formatter_class=argparse.RawTextHelpFormatter)
     argparser.add_argument("-V", "--version", 
         action="version", 
-        version="Bython v{}\nOriginally by Mathias Lohne and Tristan Pepin 2018\nForked by prushton2".format(VERSION_NUMBER))
-    argparser.add_argument("-v", "--verbose", 
-        help="print progress",
-        action="store_true") 
+        version="Bython v{}\nRewritten by Peter Rushton\nOriginally by Mathias Lohne and Tristan Pepin 2018\n".format(VERSION_NUMBER))
+    # argparser.add_argument("-v", "--verbose", 
+    #     help="print progress",
+    #     action="store_true") 
     argparser.add_argument("-c", "--compile", 
         help="translate to python only (don't run files)",
         action="store_true")

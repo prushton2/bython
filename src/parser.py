@@ -130,7 +130,7 @@ def gen_indent(indentationLevel):
                 line=""
             )
         )
-    
+
     return arr
 
 def parse_indentation(tokens):
@@ -174,7 +174,6 @@ def parse_indentation(tokens):
         
         if(j.type == 61):
             fstringdepth -= 1
-            # newTokens.append(j)
             continue
 
         if(fstringdepth != 0):
@@ -191,11 +190,31 @@ def parse_indentation(tokens):
                     line=j.line
                 )
             )
-            newTokens.extend(gen_indent(indentationLevel))
+            # newTokens.extend(gen_indent(indentationLevel))
             continue
 
         if(j.string == "}"):
             indentationLevel -= 1
+
+            print("INDENTATION LEVEL: ", indentationLevel)
+            i = -1
+            prevToken = newTokens[-1]
+            
+            while prevToken.type in [4,5,63]:
+                i -= 1
+                prevToken = newTokens[i]
+
+            
+            if(prevToken.string == ":"):
+                newTokens.append(
+                    TokenInfo(
+                        type=1,
+                        string="pass",
+                        start=(),
+                        end=(),
+                        line=""
+                    )
+                )
             continue
         
 
@@ -208,7 +227,6 @@ def parse_indentation(tokens):
 
 
 def parse_and_or(tokens):
-    # print(tokens)
     newTokens = []
 
     for i, j in enumerate(tokens):
