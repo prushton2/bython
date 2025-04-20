@@ -190,13 +190,10 @@ def parse_indentation(tokens):
                     line=j.line
                 )
             )
-            # newTokens.extend(gen_indent(indentationLevel))
             continue
 
         if(j.string == "}"):
             indentationLevel -= 1
-
-            print("INDENTATION LEVEL: ", indentationLevel)
             i = -1
             prevToken = newTokens[-1]
             
