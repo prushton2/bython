@@ -78,7 +78,7 @@ To transpile an entire directory, run bython with the `-o` to specify the output
 $ bython -o dist -e main.py src
 ```
 
-To transpile without running, use the `-c` argument to specify compile without running. Using this with the `-e` argument does not work. You can also include `-t` to translate lowercase booleans to uppercase
+To transpile without running, use the `-c` argument to specify compile without running. Using this with the `-e` argument does not work. You can also include `-t` to translate lowercase booleans to uppercase and null to None
 
 ```
 $ bython -o dist -c -t src

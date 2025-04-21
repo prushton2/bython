@@ -8,6 +8,9 @@ def main() {
     if(a || b) {
         print("or!")
     }
+
+    if(a and b) {}
+    if(a or b) {}
 }
 
 if(__name__ == "__main__") {

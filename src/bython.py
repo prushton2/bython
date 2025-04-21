@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 import parser
-VERSION_NUMBER = "1.1"
+VERSION_NUMBER = "1.1.1"
 """
 Bython is Python with braces.
 
@@ -71,7 +71,7 @@ def main():
         cmd_args.output = ["build/"]
     elif not cmd_args.output[0].endswith("/"):
         cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
-    
+    /python_test.py
     # Delete Build Directory
     try:
         shutil.rmtree(cmd_args.output[0])

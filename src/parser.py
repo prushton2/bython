@@ -287,6 +287,18 @@ def parse_true_false(tokens):
                 )
             )
             continue
+        
+        if(j.string == "null"):
+            newTokens.append(
+                TokenInfo(
+                    type=1,
+                    string="None",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            continue
 
         newTokens.append(j)
     return newTokens
