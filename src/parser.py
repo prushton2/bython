@@ -111,6 +111,7 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     if(parsetruefalse):
         newTokens = parse_true_false(newTokens)
 
+    newTokens = clean_whitespace(newTokens)
 
     for(i, j) in enumerate(newTokens):
         outfile.write(j.string)
@@ -333,4 +334,27 @@ def parse_true_false(tokens):
             continue
 
         newTokens.append(j)
+    return newTokens
+
+
+def clean_whitespace(tokens):
+    logger = logging.getLogger()
+
+    current_line = []
+    newTokens = []
+    contains_real_tokens = False
+
+    for i, j in enumerate(tokens):
+        current_line.append(j)
+
+        if(not (j.type in [4, 5, 63])):
+            contains_real_tokens = True
+
+        if(j.string == "\n"):
+            logger.debug(f"Newline (append tokens: {contains_real_tokens}, token info: {[token.string for token in current_line]})")
+            if(contains_real_tokens):
+                newTokens.extend(current_line)
+            current_line = []
+            contains_real_tokens = False
+
     return newTokens
