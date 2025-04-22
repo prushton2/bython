@@ -8,11 +8,11 @@ def main():
     totaltests = 0
 
 
-    for f in sorted(os.listdir("./testcases/")):
+    for f in sorted(os.listdir("./testcases/bython")):
         if(f == "main.py" or f == "__init__.py"):
             continue
         
-        test = os.path.join("./testcases/", f)
+        test = os.path.join("./testcases/bython", f)
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:

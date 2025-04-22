@@ -2,6 +2,8 @@ import re
 import os
 from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, TokenInfo
 from tokenize import open as topen;
+import logging
+
 """
 Python module for converting bython code to python code.
 """
@@ -134,6 +136,7 @@ def gen_indent(indentationLevel):
     return arr
 
 def parse_indentation(tokens):
+    logger = logging.getLogger()
     newTokens = []
     indentationLevel = 0
     mapdepth = 0
@@ -145,6 +148,7 @@ def parse_indentation(tokens):
         if( i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == "=" and j.string == "{"):
             mapdepth = 1
             newTokens.append(j)
+            logger.debug("Entered map")
             continue
 
         # We're inside a map, so we add the token
@@ -154,9 +158,11 @@ def parse_indentation(tokens):
         # We update how deep we are in the map. If this changes, we're done 
         if( i >= 2 and mapdepth >= 1 and tokens[i].string == "{"):
             mapdepth += 1
+            logger.debug(f"Map depth {mapdepth}")
             continue
         if( i >= 2 and mapdepth >= 1 and tokens[i].string == "}"):
             mapdepth -= 1
+            logger.debug(f"Map depth {mapdepth}")
             continue
 
         # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
@@ -168,18 +174,22 @@ def parse_indentation(tokens):
 
         if(j.type == 59):
             fstringdepth += 1
+            logger.debug(f"fstring depth {fstringdepth}")
+            
         
         if(fstringdepth >= 1):
             newTokens.append(j)
         
         if(j.type == 61):
             fstringdepth -= 1
+            logger.debug(f"fstring depth {fstringdepth}")
             continue
 
         if(fstringdepth != 0):
             continue
 
         if (j.string == "{"):
+            logger.debug(f"Indentation level now {indentationLevel+1} (was {indentationLevel})")
             indentationLevel += 1
             newTokens.append(
                 TokenInfo(
@@ -193,6 +203,7 @@ def parse_indentation(tokens):
             continue
 
         if(j.string == "}"):
+            logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
             indentationLevel -= 1
             i = -1
             prevToken = newTokens[-1]
@@ -203,6 +214,7 @@ def parse_indentation(tokens):
 
             
             if(prevToken.string == ":"):
+                logger.debug(f"Found empty block, inserted pass")
                 newTokens.append(
                     TokenInfo(
                         type=1,
@@ -212,22 +224,35 @@ def parse_indentation(tokens):
                         line=""
                     )
                 )
+            newTokens.append(
+                TokenInfo(
+                    type=4,
+                    string="\n",
+                    start=(),
+                    end=(),
+                    line=""
+                )
+            )
+            newTokens.extend(gen_indent(indentationLevel))
             continue
         
 
         newTokens.append(j)
 
         if(newTokens[-1].string == "\n"):
+            logger.debug(f"Newline")
             newTokens.extend(gen_indent(indentationLevel))
     
     return newTokens
 
 
 def parse_and_or(tokens):
+    logger = logging.getLogger()
     newTokens = []
 
     for i, j in enumerate(tokens):
         if(j.string == "&" and tokens[i+1].string == "&"):
+            logger.debug(f"Converted && to and")
             newTokens.append(
                 TokenInfo(
                     type=1,
@@ -239,9 +264,11 @@ def parse_and_or(tokens):
             )
             continue
         if(j.string == "&" and tokens[i-1].string == "&"):
+            logger.debug(f"Skipped &&")
             continue
         
         if(j.string == "|" and tokens[i+1].string == "|"):
+            logger.debug(f"Converted || to or")
             newTokens.append(
                 TokenInfo(
                     type=1,
@@ -253,6 +280,7 @@ def parse_and_or(tokens):
             )
             continue
         if(j.string == "|" and tokens[i-1].string == "|"):
+            logger.debug(f"Skipped ||")
             continue
 
         newTokens.append(j)
@@ -261,10 +289,12 @@ def parse_and_or(tokens):
 
 
 def parse_true_false(tokens):
+    logger = logging.getLogger()
     newTokens = []
 
     for i, j in enumerate(tokens):
         if(j.string == "true"):
+            logger.debug(f"converted true to True")
             newTokens.append(
                 TokenInfo(
                     type=1,
@@ -277,6 +307,7 @@ def parse_true_false(tokens):
             continue
         
         if(j.string == "false"):
+            logger.debug(f"converted false to False")
             newTokens.append(
                 TokenInfo(
                     type=1,
@@ -289,6 +320,7 @@ def parse_true_false(tokens):
             continue
         
         if(j.string == "null"):
+            logger.debug(f"converted null to None")
             newTokens.append(
                 TokenInfo(
                     type=1,

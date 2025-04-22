@@ -4,11 +4,15 @@ import os
 import sys
 import shutil
 import subprocess
+import logging
 
 from pathlib import Path
-
 import parser
+
 VERSION_NUMBER = "1.1.1"
+logging.basicConfig(format='%(funcName)s: %(message)s')
+logger = logging.getLogger()
+
 """
 Bython is Python with braces.
 
@@ -34,9 +38,10 @@ def main():
     argparser.add_argument("-V", "--version", 
         action="version", 
         version="Bython v{}\nRewritten by Peter Rushton\nOriginally by Mathias Lohne and Tristan Pepin 2018\n".format(VERSION_NUMBER))
-    # argparser.add_argument("-v", "--verbose", 
-    #     help="print progress",
-    #     action="store_true") 
+    argparser.add_argument("-v", "--verbose", 
+        type=str,
+        help="Specify a verbosity level for debugging (debug, info, warning, error, critical)",
+        nargs=1) 
     argparser.add_argument("-c", "--compile", 
         help="translate to python only (don't run files)",
         action="store_true")
@@ -66,12 +71,27 @@ def main():
     # Parse arguments
     cmd_args = argparser.parse_args()
 
+    if(cmd_args.verbose != None):
+        if cmd_args.verbose[0].lower() == "debug":
+            logger.setLevel(logging.DEBUG)
+        elif cmd_args.verbose[0].lower() == "info":
+            logger.setLevel(logging.INFO)
+        elif cmd_args.verbose[0].lower() == "warning":
+            logger.setLevel(logging.WARNING)
+        elif cmd_args.verbose[0].lower() == "error":
+            logger.setLevel(logging.ERROR)
+        elif cmd_args.verbose[0].lower() == "critical":
+            logger.setLevel(logging.CRITICAL)
+        else:
+            print("Invalid verbosity level. Using none.")
+
+
     # Ensure existence of a build directory
     if cmd_args.output == None:
         cmd_args.output = ["build/"]
     elif not cmd_args.output[0].endswith("/"):
         cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
-    /python_test.py
+
     # Delete Build Directory
     try:
         shutil.rmtree(cmd_args.output[0])
@@ -87,9 +107,12 @@ def main():
     
     # We are parsing a single file
     if cmd_args.input[0].endswith(".by"):
+        logger.info(f"Parsing {cmd_args.input[0]}")
         Path(cmd_args.output[0]).mkdir()
         parser.parse_file(cmd_args.input[0], cmd_args.output[0]+"main.py", cmd_args.truefalse)
+        logger.info(f"Wrote {cmd_args.input[0]} to {cmd_args.output[0]+"main.py"}")
         if not cmd_args.compile:
+            logger.info(f"Running `python build/main.py`")
             subprocess.run(["python", "build/main.py"])
         return
 
@@ -106,11 +129,14 @@ def main():
         if not str(i).endswith(".by"):
             # its ok if this fails. It only fails on directories, which are made in the previous line
             subprocess.run(["cp", source_file, dest_file], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            logger.info(f"Copied {source_file} to {dest_file}")
         else:
             dest_file = dest_file[0:-3] + ".py"
             parser.parse_file(source_file, dest_file, cmd_args.truefalse)
+            logger.info(f"Parsed {source_file} to {dest_file}")
     
     if not cmd_args.compile:
+        logger.info(f"Running `python {cmd_args.output[0]+cmd_args.entry_point[0]}`")
         subprocess.run(["python", cmd_args.output[0]+cmd_args.entry_point[0]])
 
 if __name__ == '__main__':
