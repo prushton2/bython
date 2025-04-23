@@ -114,9 +114,9 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     newTokens = clean_whitespace(newTokens)
 
     for(i, j) in enumerate(newTokens):
-        outfile.write(j.string)
-        if(j.type == 1):
+        if(i >= 1 and j.type == 1 and newTokens[i-1].type == 1):
             outfile.write(" ")
+        outfile.write(j.string)
 
     infile.close()
     outfile.close()

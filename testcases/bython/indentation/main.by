@@ -6,7 +6,7 @@ def main() {
             break
         }
         print("endif")
-    } elif (a == 2) {
+    } elif a == 2 { # test if space inserted here
         print("a is 2")
     } else {
         print("a is 3")
