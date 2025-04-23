@@ -101,7 +101,7 @@ testcases only test bython conversions, and are structured as follows:
 
 `<test name>` <br>
  |-`main.by`  Bython code to convert<br>
- |-`expected_out.txt` Expexted out when running the bython<br>
+ |-`expected_out.txt` Expected out when running the bython<br>
  |-`build/` Dir for transpiled python code
 
  run `make test` to run bython tests
