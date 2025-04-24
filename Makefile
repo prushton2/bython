@@ -12,4 +12,9 @@ uninstall:
 	rm /bin/bython
 	rm /bin/by2py
 test:
-	python ./testcases/main.py
+	python ./tests/main.py
+packagebuild:
+	rm -rf ./dist
+	python3 -m build
+packagedeploytest:
+	python3 -m twine upload --repository testpypi dist/* --verbose

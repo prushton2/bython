@@ -7,7 +7,7 @@ import subprocess
 import logging
 
 from pathlib import Path
-import parser
+from . import parser
 
 VERSION_NUMBER = "1.1.2"
 logging.basicConfig(format='%(funcName)s: %(message)s')

@@ -8,15 +8,15 @@ def main():
     totaltests = 0
 
 
-    for f in sorted(os.listdir("./testcases/bython")):
+    for f in sorted(os.listdir("./tests/bython")):
         if(f == "main.py" or f == "__init__.py"):
             continue
         
-        test = os.path.join("./testcases/bython", f)
+        test = os.path.join("./tests/bython", f)
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:
-            command = ["python", "src/bython.py", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-c", "-t"]
+            command = ["python", "src/bython_prushton2/__main__.py", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-c", "-t"]
 
             subprocess.run(command)
             
