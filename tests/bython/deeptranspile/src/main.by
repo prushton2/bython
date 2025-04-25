@@ -1,9 +1,7 @@
-import printliba
-import printlib
-
 def main():
     print("Welcome to Bython!")
     # Add your code logic here
 
-if __name__ == "__main__":
+if __name__ == "__main__" {
     main()
+}

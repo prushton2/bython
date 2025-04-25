@@ -19,8 +19,8 @@ Bython is Python with braces.
 This is a command-line utility to translate and run bython files.
 
 Flags and arguments:
-    -V, --version:      Print version number
-    -v, --verbose:      Print progress
+    -v, --version:      Print version number
+    -V, --verbose:      Print progress
     -c, --compile:      Translate to python file and store; do not run
     -k, --keep:         Keep generated python files
     -t, --lower_true:   Adds support for lower case true/false
@@ -35,10 +35,10 @@ def main():
     argparser = argparse.ArgumentParser("bython", 
         description="Bython is a python preprosessor that translates braces into indentation", 
         formatter_class=argparse.RawTextHelpFormatter)
-    argparser.add_argument("-V", "--version", 
+    argparser.add_argument("-v", "--version", 
         action="version", 
         version="Bython v{}\nRewritten by Peter Rushton\nOriginally by Mathias Lohne and Tristan Pepin 2018\n".format(VERSION_NUMBER))
-    argparser.add_argument("-v", "--verbose", 
+    argparser.add_argument("-V", "--verbose", 
         type=str,
         help="Specify a verbosity level for debugging (debug, info, warning, error, critical)",
         nargs=1) 
@@ -92,18 +92,23 @@ def main():
     # elif not cmd_args.output[0].endswith("/"):
     #     cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
 
+    # Ensure existence of entry point
+    if cmd_args.entry_point == None:
+        cmd_args.entry_point = ["main.py"]
+    
     # Delete Build Directory
     try:
         shutil.rmtree(cmd_args.output[0])
     except PermissionError:
-        print("Permission denied. Unable to delete the directory.")
+        logger.error("Permission denied. Unable to delete the directory.")
         sys.exit(1)
     except:
         pass
 
-    # Ensure existence of entry point
-    if cmd_args.entry_point == None:
-        cmd_args.entry_point = ["main.py"]
+    # -c and -e are redundant i hate them
+    # i cant bargain with my past self
+    # 
+
     
     # We are parsing a single file
     if cmd_args.input[0].endswith(".by"):
@@ -120,26 +125,24 @@ def main():
     tld = Path(cmd_args.input[0])
     files = list(tld.glob("**/*"))
 
-    for i in files:
-        source_file = str(i)
+    for source_file in files:
+        # We remove the part of the path specified in the command line, so we are left with the relative path to the source directory
+        # ex: ../tests/bython/test1/src/liba/main.by -> liba/main.by
+        source_file_name = str(source_file)[len(str(tld))+1:] 
         
-        # this is just terrible
-        dest_file = cmd_args.output[0]+"/".join(str(i).split("/")[1:])
+        # This is the file we are going to write to
+        # ex: liba/main.by -> ../tests/bython/test1/build/liba/main.py
+        dest_file = os.path.join(cmd_args.output[0], source_file_name)
         
-        #print(source_file, "->", dest_file)
-        # just copy it over
-        subprocess.run(["mkdir", "-p", "/".join(dest_file.split("/")[0:-1]) ])
-
+        # print(f"File Info:\n    source_file {source_file}\n    dest_file {dest_file}\n    source_file_name {source_file_name}")
         
-        # Create the directory 'a' assuming it doesn't exist and no parent directories exist
         try:
-            os.makedirs("a", exist_ok=True)
-            logger.info("Directory 'a' created successfully.")
+            os.makedirs("/".join(dest_file.split("/")[0:-1]), exist_ok=True)
         except Exception as e:
-            logger.error(f"Failed to create directory 'a': {e}")
+            logger.error(f"Failed to create directory {"/".join(dest_file.split("/")[0:-1])}: {e}")
 
 
-        if not str(i).endswith(".by"):
+        if not str(source_file).endswith(".by"):
             # its ok if this fails. It only fails on directories, which are made in the previous line
             subprocess.run(["cp", source_file, dest_file], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             logger.info(f"Copied {source_file} to {dest_file}")

@@ -46,12 +46,10 @@ def main():
             info = {}
             with open(os.path.join(test, "info.json"), 'r') as cmd:
                 info = json.loads(cmd.read())
-                print(info)
             
             command = ["python", "-m", "bython_prushton2"] + info["command"]
 
             proc
-
 
             if(info["runPython"]):
                 subprocess.run(command)
