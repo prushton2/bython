@@ -14,12 +14,10 @@ def main():
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:
-            command = ["python", "-m", "bython-prushton", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-k", "-t", "-V", "info"]
+            command = ["python", "-m", "bython-prushton", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-k", "-t"]
 
-            subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE)
             
-            proc = subprocess.Popen(["python", os.path.join(test, "build/main.py")], stdout=subprocess.PIPE)
-
             stdout = ""
 
             while True:

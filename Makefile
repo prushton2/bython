@@ -32,3 +32,8 @@ packagedeploytest:
 
 packagedeploy:
 	python3 -m twine upload --repository pypi dist/* --verbose
+
+packageall:
+	make packagebuild
+	make packagedeploytest
+	make packagedeploy

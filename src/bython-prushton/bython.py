@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from . import parser
 
-VERSION_NUMBER = "1.1.4"
+VERSION_NUMBER = "1.1.6"
 logging.basicConfig(format='%(funcName)s: %(message)s')
 logger = logging.getLogger()
 
@@ -71,6 +71,8 @@ def main():
     # Parse arguments
     cmd_args = argparser.parse_args()
 
+    logger.setLevel(logging.ERROR)
+
     if(cmd_args.verbose != None):
         if cmd_args.verbose[0].lower() == "debug":
             logger.setLevel(logging.DEBUG)
@@ -78,25 +80,19 @@ def main():
             logger.setLevel(logging.INFO)
         elif cmd_args.verbose[0].lower() == "warning":
             logger.setLevel(logging.WARNING)
-        elif cmd_args.verbose[0].lower() == "error":
-            logger.setLevel(logging.ERROR)
-        elif cmd_args.verbose[0].lower() == "critical":
-            logger.setLevel(logging.CRITICAL)
         else:
-            print("Invalid verbosity level. Using none.")
+            print("Invalid verbosity level. Using Error.")
 
 
     # Ensure existence of a build directory
     if cmd_args.output == None:
         cmd_args.output = ["build/"]
-    # elif not cmd_args.output[0].endswith("/"):
-    #     cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
 
     # Delete Build Directory
     try:
         shutil.rmtree(cmd_args.output[0])
     except PermissionError:
-        logger.error("Permission denied. Unable to delete the directory.")
+        logger.critical("Permission denied. Unable to delete the directory.")
         sys.exit(1)
     except:
         pass
@@ -136,7 +132,8 @@ def main():
         try:
             os.makedirs("/".join(dest_file.split("/")[0:-1]), exist_ok=True)
         except Exception as e:
-            logger.error(f"Failed to create directory {"/".join(dest_file.split("/")[0:-1])}: {e}")
+            logger.critical(f"Failed to create directory {"/".join(dest_file.split("/")[0:-1])}: {e}")
+            sys.exit(1)
 
 
         if not str(source_file).endswith(".by"):
