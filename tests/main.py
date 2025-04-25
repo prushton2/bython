@@ -14,7 +14,7 @@ def main():
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:
-            command = ["python", "-m", "bython_prushton2", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-k", "-t", "-V", "info"]
+            command = ["python", "-m", "bython-prushton", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-k", "-t", "-V", "info"]
 
             subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
@@ -47,7 +47,7 @@ def main():
             with open(os.path.join(test, "info.json"), 'r') as cmd:
                 info = json.loads(cmd.read())
             
-            command = ["python", "-m", "bython_prushton2"] + info["command"]
+            command = ["python", "-m", "bython-prushton"] + info["command"]
 
             proc
 

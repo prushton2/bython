@@ -53,7 +53,7 @@ def main():
         action="store_true")
     argparser.add_argument("-e", "--entry-point",
         type=str, 
-        help="Specify entry point for transpiling a directory",
+        help="Specify entry point for transpiling a directory, no entry point will only transpile the files",
         nargs=1)
     argparser.add_argument("-o", "--output",
         type=str, 
