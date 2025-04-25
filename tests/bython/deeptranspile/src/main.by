@@ -1,3 +1,6 @@
+import liba.printliba
+import liba.liba_1.printlib
+
 def main():
     print("Welcome to Bython!")
     # Add your code logic here

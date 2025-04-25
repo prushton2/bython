@@ -42,8 +42,8 @@ def main():
         type=str,
         help="Specify a verbosity level for debugging (debug, info, warning, error, critical)",
         nargs=1) 
-    argparser.add_argument("-c", "--compile", 
-        help="translate to python only (don't run files)",
+    argparser.add_argument("-k", "--keep", 
+        help="Keeps the generated python file when transpiling one file",
         action="store_true")
     argparser.add_argument("-t", "--truefalse",
         help="adds support for lower case true/false, aswell as null for None",
@@ -53,7 +53,7 @@ def main():
         action="store_true")
     argparser.add_argument("-e", "--entry-point",
         type=str, 
-        help="Specify entry point. Default is ./main.by",
+        help="Specify entry point for transpiling a directory",
         nargs=1)
     argparser.add_argument("-o", "--output",
         type=str, 
@@ -92,10 +92,6 @@ def main():
     # elif not cmd_args.output[0].endswith("/"):
     #     cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
 
-    # Ensure existence of entry point
-    if cmd_args.entry_point == None:
-        cmd_args.entry_point = ["main.py"]
-    
     # Delete Build Directory
     try:
         shutil.rmtree(cmd_args.output[0])
@@ -104,21 +100,22 @@ def main():
         sys.exit(1)
     except:
         pass
-
-    # -c and -e are redundant i hate them
-    # i cant bargain with my past self
-    # 
-
     
     # We are parsing a single file
     if cmd_args.input[0].endswith(".by"):
         logger.info(f"Parsing {cmd_args.input[0]}")
-        Path(cmd_args.output[0]).mkdir()
+        os.makedirs(Path(cmd_args.output[0]))
+        
         parser.parse_file(cmd_args.input[0], os.path.join(cmd_args.output[0], "main.py"), cmd_args.truefalse)
-        logger.info(f"Wrote {cmd_args.input[0]} to {cmd_args.output[0]+"main.py"}")
-        if not cmd_args.compile:
-            logger.info(f"Running `python build/main.py`")
-            subprocess.run(["python", "build/main.py"])
+        logger.info(f"Wrote {cmd_args.input[0]} to {os.path.join(cmd_args.output[0], "main.py")}")
+        
+        logger.info(f"Running `python {os.path.join(cmd_args.output[0], "main.py")}`")
+        subprocess.run(["python", os.path.join(cmd_args.output[0], "main.py")])
+
+        if not cmd_args.keep:
+            logger.info(f"Deleting {cmd_args.output[0]}")
+            shutil.rmtree(cmd_args.output[0])
+        
         return
 
     # we are not parsing a single file, so do the whole directory thing
@@ -151,7 +148,7 @@ def main():
             parser.parse_file(source_file, dest_file, cmd_args.truefalse)
             logger.info(f"Parsed {source_file} to {dest_file}")
     
-    if not cmd_args.compile:
+    if cmd_args.entry_point:
         logger.info(f"Running `python {cmd_args.output[0]+cmd_args.entry_point[0]}`")
         subprocess.run(["python", cmd_args.output[0]+cmd_args.entry_point[0]])
 

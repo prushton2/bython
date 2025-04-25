@@ -14,9 +14,9 @@ def main():
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:
-            command = ["python", "-m", "bython_prushton2", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-c", "-t"]
+            command = ["python", "-m", "bython_prushton2", str(os.path.join(test, "main.by")), "-o", str(os.path.join(test, "build")), "-k", "-t", "-V", "info"]
 
-            subprocess.run(command)
+            subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
             proc = subprocess.Popen(["python", os.path.join(test, "build/main.py")], stdout=subprocess.PIPE)
 
@@ -55,8 +55,7 @@ def main():
                 subprocess.run(command)
                 proc = subprocess.Popen(["python", os.path.join(test, f"{info["outdir"]}/main.py")], stdout=subprocess.PIPE)
             else:
-                continue
-
+                proc = subprocess.Popen(command, stdout=subprocess.PIPE)
 
             stdout = ""
 
@@ -78,7 +77,7 @@ def main():
 
 
     if(testspassed == totaltests):
-        print(f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT} 0 TESTS FAILED\n\n{colorama.Fore.RESET}")
+        print(f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT} 0 TESTS FAILED ({totaltests} tests ran)\n\n{colorama.Fore.RESET}")
     else:
         print(f"{colorama.Fore.RED}{colorama.Style.BRIGHT} {totaltests - testspassed} TEST{"" if totaltests - testspassed == 1 else "S"} FAILED{colorama.Fore.RESET}\n\n")
 
