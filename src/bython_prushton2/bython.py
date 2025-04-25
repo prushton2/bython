@@ -89,8 +89,8 @@ def main():
     # Ensure existence of a build directory
     if cmd_args.output == None:
         cmd_args.output = ["build/"]
-    elif not cmd_args.output[0].endswith("/"):
-        cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
+    # elif not cmd_args.output[0].endswith("/"):
+    #     cmd_args.output[0] = cmd_args.output[0] + "/" #eehhh not great ill fix later
 
     # Delete Build Directory
     try:
@@ -109,7 +109,7 @@ def main():
     if cmd_args.input[0].endswith(".by"):
         logger.info(f"Parsing {cmd_args.input[0]}")
         Path(cmd_args.output[0]).mkdir()
-        parser.parse_file(cmd_args.input[0], cmd_args.output[0]+"main.py", cmd_args.truefalse)
+        parser.parse_file(cmd_args.input[0], os.path.join(cmd_args.output[0], "main.py"), cmd_args.truefalse)
         logger.info(f"Wrote {cmd_args.input[0]} to {cmd_args.output[0]+"main.py"}")
         if not cmd_args.compile:
             logger.info(f"Running `python build/main.py`")
@@ -122,10 +122,23 @@ def main():
 
     for i in files:
         source_file = str(i)
+        
+        # this is just terrible
         dest_file = cmd_args.output[0]+"/".join(str(i).split("/")[1:])
+        
         #print(source_file, "->", dest_file)
         # just copy it over
         subprocess.run(["mkdir", "-p", "/".join(dest_file.split("/")[0:-1]) ])
+
+        
+        # Create the directory 'a' assuming it doesn't exist and no parent directories exist
+        try:
+            os.makedirs("a", exist_ok=True)
+            logger.info("Directory 'a' created successfully.")
+        except Exception as e:
+            logger.error(f"Failed to create directory 'a': {e}")
+
+
         if not str(i).endswith(".by"):
             # its ok if this fails. It only fails on directories, which are made in the previous line
             subprocess.run(["cp", source_file, dest_file], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

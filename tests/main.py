@@ -2,17 +2,15 @@ import os
 import subprocess
 import sys
 import colorama
+import json
 
 def main():
     testspassed = 0
     totaltests = 0
 
 
-    for f in sorted(os.listdir("../tests/bython")):
-        if(f == "main.py" or f == "__init__.py"):
-            continue
-        
-        test = os.path.join("../tests/bython", f)
+    for f in sorted(os.listdir("../tests/parser")):
+        test = os.path.join("../tests/parser", f)
         totaltests += 1
 
         with open(os.path.join(test, "expected_out.txt"), 'r') as file:
@@ -38,6 +36,47 @@ def main():
                 print(f"{colorama.Style.NORMAL}    {test}\n    Expected\n{colorama.Fore.RESET}{expected_out}\n    {colorama.Fore.RED}Received\n{colorama.Fore.RESET}{stdout}\n    {colorama.Fore.RED}from {" ".join(command)}")
 
                 print(colorama.Fore.RESET)
+
+
+    for f in sorted(os.listdir("../tests/bython")):
+        test = os.path.join("../tests/bython", f)
+        totaltests += 1
+
+        with open(os.path.join(test, "expected_out.txt"), 'r') as out:
+            info = {}
+            with open(os.path.join(test, "info.json"), 'r') as cmd:
+                info = json.loads(cmd.read())
+                print(info)
+            
+            command = ["python", "-m", "bython_prushton2"] + info["command"]
+
+            proc
+
+
+            if(info["runPython"]):
+                subprocess.run(command)
+                proc = subprocess.Popen(["python", os.path.join(test, f"{info["outdir"]}/main.py")], stdout=subprocess.PIPE)
+            else:
+                continue
+
+
+            stdout = ""
+
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    break
+                stdout += (line).decode("utf-8")
+
+            expected_out = out.read()
+            if(stdout == expected_out):
+                testspassed += 1
+            else:
+                print(colorama.Fore.RED + colorama.Style.BRIGHT + "\nTEST FAILED ")
+                print(f"{colorama.Style.NORMAL}    {test}\n    Expected\n{colorama.Fore.RESET}{expected_out}\n    {colorama.Fore.RED}Received\n{colorama.Fore.RESET}{stdout}\n    {colorama.Fore.RED}from {" ".join(command)}")
+
+                print(colorama.Fore.RESET)
+
 
 
     if(testspassed == totaltests):
