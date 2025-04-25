@@ -1,0 +1,5 @@
+{
+    "command": ["../tests/bython/deeptranspile/src", "-o", "../tests/bython/deeptranspile/dist"],
+    "runPython": true,
+    "outdir": "dist"
+}

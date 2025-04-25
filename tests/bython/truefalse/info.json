@@ -1,0 +1,5 @@
+{
+    "command": ["../tests/bython/truefalse/src", "-o", "../tests/bython/truefalse/dist", "-t"],
+    "runPython": true,
+    "outdir": "dist"
+}

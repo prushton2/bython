@@ -31,29 +31,11 @@ if __name__ == "__main__" {
 
 ## Installation
 
-### Linux
-Prerequisites:
-* Python
-* Pyinstaller
+Install from pip
 
-Clone the repo with
 ```
-$ git clone https://github.com/prushton2/bython
+$ python -m pip install bython-prushton
 ```
-
-Using the makefile, run
-```
-$ sudo make install
-```
-
-This installs `/bin/bython` and `/bin/py2by`
-
-To uninstall, run
-```
-sudo make uninstall
-```
-### Windows / Mac
-I dont use these operating systems, if you want to write an install recipe for them please do!
 
 ## Quick intro
 
@@ -63,25 +45,25 @@ Bython works by first translating Bython-files (required file ending: .by) into 
 To run a Bython program, simply type
 
 ```
-$ bython source.by arg1 arg2 ...
+$ python -m bython-prushton source.by 
 ```
 
-to run `source.by` with arg1, arg2, ... as command line arguments. If you want more details on how to run Bython files (flags, etc), type
+to run `source.by`. If you want more details on how to run Bython files (flags, etc), type
 
 ```
-$ bython -h
+$ python -m bython-prushton -h
 ```
 
 To transpile an entire directory, run bython with the `-o` to specify the output directory, and `-e` to specify the entry point. 
 
 ```
-$ bython -o dist -e main.py src
+$ python -m bython-prushton -o dist -e main.py src
 ```
 
-To transpile without running, use the `-c` argument to specify compile without running. Using this with the `-e` argument does not work. You can also include `-t` to translate lowercase booleans to uppercase and null to None
+To transpile without running, omit the `-e` argument. You can also include `-t` to translate lowercase booleans to uppercase and null to None
 
 ```
-$ bython -o dist -c -t src
+$ python -m bython-prushton -o dist -t src
 ```
 
 ## Contributing
@@ -93,18 +75,24 @@ If you want to contribute, make sure to install
 * Colorama
 
 All source code is located in `src`
-* `src/bython.py` handles the command line arguments
-* `src/parser.py` handles tokenizing and parsing files
-* `src/py2by.py` parses python to bython and could use some help
+* `src/bython-prushton/bython.py` handles the command line arguments
+* `src/bython-prushton/parser.py` handles tokenizing and parsing files
+* `src/bython-prushton/py2by.py` parses python to bython and could use some help
 
-testcases only test bython conversions, and are structured as follows:
+testcases have two structures for testing the parser and the cli:
 
-`<test name>` <br>
- |-`main.by`  Bython code to convert<br>
- |-`expected_out.txt` Expected out when running the bython<br>
- |-`build/` Dir for transpiled python code
+```
+bython
+|-<test name>
+|  |-src                  Bython code to convert
+|  |-expected_out.txt     Expected out when running the bython
+|  |-info.json            Info on how to run the test
+|  |-build/               Dir for transpiled python code
+parser
+|-<test name> 
+|  |-main.by              Bython code to convert<br>
+|  |-expected_out.txt     Expected out when running the bython
+|  |-build/               Dir for transpiled python code
+```
 
- run `make test` to run bython tests
-
-### Installation
-If you want to write an install recipe for windows or mac, please feel free. I cannot write these scripts myself as I have neither.
+run `make test` to run bython tests
