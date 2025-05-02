@@ -42,7 +42,7 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     newTokens = clean_whitespace(newTokens)
 
     for(i, j) in enumerate(newTokens):
-        if(i >= 1 and j.type == 1 and newTokens[i-1].type == 1):
+        if(i >= 1 and j.type in [1, 2] and newTokens[i-1].type in [1, 2]):
             outfile.write(" ")
         outfile.write(j.string)
 
