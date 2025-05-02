@@ -29,13 +29,11 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
 
-    # for i in tokens:
-    #     print(i)
-
     tokens.pop(0) #this is the encoding scheme which i dont care about (hopefully)
 
+
     newTokens = parse_indentation(tokens)
-    
+
     newTokens = parse_and_or(newTokens)
 
     if(parsetruefalse):
@@ -70,102 +68,72 @@ def parse_indentation(tokens):
     logger = logging.getLogger()
     newTokens = []
     indentationLevel = 0
-    mapdepth = 0
-    fstringdepth = 0
+    nonScopeCurlyDepth = 0
+    lineStartsWithScope = False
 
     for i, j in enumerate(tokens):
         
-        # We find the start of a map. We need to set depth to 1, add the { token, and done
-        if( i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == "=" and j.string == "{"):
-            mapdepth = 1
-            newTokens.append(j)
-            logger.debug("Entered map")
-            continue
-
-        # We're inside a map, so we add the token
-        if(mapdepth >= 1):
-            newTokens.append(j)
-
-        # We update how deep we are in the map. If this changes, we're done 
-        if( i >= 2 and mapdepth >= 1 and tokens[i].string == "{"):
-            mapdepth += 1
-            logger.debug(f"Map depth {mapdepth}")
-            continue
-        if( i >= 2 and mapdepth >= 1 and tokens[i].string == "}"):
-            mapdepth -= 1
-            logger.debug(f"Map depth {mapdepth}")
-            continue
-
-        # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
-        if(mapdepth != 0):
-            continue
-
-        # Similar logic for fstrings: We check for entry, check if inside to push the token, and check for exit
-        # Im not sure if this is the best way to do it, but it works
-
-        if(j.type == 59):
-            fstringdepth += 1
-            logger.debug(f"fstring depth {fstringdepth}")
-            
+        if(j.string == "\n"):
+            lineStartsWithScope = False
         
-        if(fstringdepth >= 1):
-            newTokens.append(j)
+        if(j.string in ["if", "elif", "else", "for", "while", "try", "except", "finally", "with", "def", "class"]):
+            lineStartsWithScope = True
         
-        if(j.type == 61):
-            fstringdepth -= 1
-            logger.debug(f"fstring depth {fstringdepth}")
-            continue
-
-        if(fstringdepth != 0):
-            continue
-
+        # If we encounter a curly after a token that starts a scope, we start a scope aswell. Else, we are in a map or smth so mark that down
         if (j.string == "{"):
-            logger.debug(f"Indentation level now {indentationLevel+1} (was {indentationLevel})")
-            indentationLevel += 1
-            newTokens.append(
-                TokenInfo(
-                    type=55,
-                    string=":",
-                    start=j.start,
-                    end=j.end,
-                    line=j.line
-                )
-            )
-            continue
-
-        if(j.string == "}"):
-            logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
-            indentationLevel -= 1
-            i = -1
-            prevToken = newTokens[-1]
-            
-            while prevToken.type in [4,5,63]:
-                i -= 1
-                prevToken = newTokens[i]
-
-            
-            if(prevToken.string == ":"):
-                logger.debug(f"Found empty block, inserted pass")
+            if(lineStartsWithScope):
+                logger.debug(f"Indentation level now {indentationLevel+1} (was {indentationLevel})")
+                indentationLevel += 1
                 newTokens.append(
                     TokenInfo(
-                        type=1,
-                        string="pass",
+                        type=55,
+                        string=":",
+                        start=j.start,
+                        end=j.end,
+                        line=j.line
+                    )
+                )
+                continue
+            else:
+                nonScopeCurlyDepth += 1
+                
+
+        if(j.string == "}"):
+            if(nonScopeCurlyDepth == 0):
+                logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
+                indentationLevel -= 1
+                i = -1
+                prevToken = newTokens[-1]
+                
+                while prevToken.type in [4,5,63]:
+                    i -= 1
+                    prevToken = newTokens[i]
+
+                
+                if(prevToken.string == ":"): # ew
+                    logger.debug(f"Found empty block, inserted pass")
+                    newTokens.append(
+                        TokenInfo(
+                            type=1,
+                            string="pass",
+                            start=(),
+                            end=(),
+                            line=""
+                        )
+                    )
+                newTokens.append(
+                    TokenInfo(
+                        type=4,
+                        string="\n",
                         start=(),
                         end=(),
                         line=""
                     )
                 )
-            newTokens.append(
-                TokenInfo(
-                    type=4,
-                    string="\n",
-                    start=(),
-                    end=(),
-                    line=""
-                )
-            )
-            newTokens.extend(gen_indent(indentationLevel))
-            continue
+                newTokens.extend(gen_indent(indentationLevel))
+                continue
+            else:
+                nonScopeCurlyDepth -= 1
         
 
         newTokens.append(j)
@@ -288,3 +256,49 @@ def clean_whitespace(tokens):
             contains_real_tokens = False
 
     return newTokens
+
+
+
+# # We find the start of a map. We need to set depth to 1, add the { token, and done
+#         if( i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == "=" and j.string == "{"):
+#             mapdepth = 1
+#             newTokens.append(j)
+#             logger.debug("Entered map")
+#             continue
+
+#         # We're inside a map, so we add the token
+#         if(mapdepth >= 1):
+#             newTokens.append(j)
+
+#         # We update how deep we are in the map. If this changes, we're done 
+#         if( i >= 2 and mapdepth >= 1 and tokens[i].string == "{"):
+#             mapdepth += 1
+#             logger.debug(f"Map depth {mapdepth}")
+#             continue
+#         if( i >= 2 and mapdepth >= 1 and tokens[i].string == "}"):
+#             mapdepth -= 1
+#             logger.debug(f"Map depth {mapdepth}")
+#             continue
+
+#         # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
+#         if(mapdepth != 0):
+#             continue
+
+#         # Similar logic for fstrings: We check for entry, check if inside to push the token, and check for exit
+#         # Im not sure if this is the best way to do it, but it works
+
+#         if(j.type == 59):
+#             fstringdepth += 1
+#             logger.debug(f"fstring depth {fstringdepth}")
+            
+        
+#         if(fstringdepth >= 1):
+#             newTokens.append(j)
+        
+#         if(j.type == 61):
+#             fstringdepth -= 1
+#             logger.debug(f"fstring depth {fstringdepth}")
+#             continue
+
+#         if(fstringdepth != 0):
+#             continue
