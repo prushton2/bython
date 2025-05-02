@@ -97,7 +97,7 @@ def parse_indentation(tokens):
             else:
                 nonScopeCurlyDepth += 1
                 
-
+        # Same idea here: If our close curly isnt inside something else (map, fstring) then we dedent
         if(j.string == "}"):
             if(nonScopeCurlyDepth == 0):
                 logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
@@ -105,7 +105,8 @@ def parse_indentation(tokens):
                 i = -1
                 prevToken = newTokens[-1]
                 
-                while prevToken.type in [4,5,63]:
+                # check if the token matches either newline, a comment, or an indent
+                while prevToken.type in [4,5,62,63]:
                     i -= 1
                     prevToken = newTokens[i]
 
@@ -256,49 +257,3 @@ def clean_whitespace(tokens):
             contains_real_tokens = False
 
     return newTokens
-
-
-
-# # We find the start of a map. We need to set depth to 1, add the { token, and done
-#         if( i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == "=" and j.string == "{"):
-#             mapdepth = 1
-#             newTokens.append(j)
-#             logger.debug("Entered map")
-#             continue
-
-#         # We're inside a map, so we add the token
-#         if(mapdepth >= 1):
-#             newTokens.append(j)
-
-#         # We update how deep we are in the map. If this changes, we're done 
-#         if( i >= 2 and mapdepth >= 1 and tokens[i].string == "{"):
-#             mapdepth += 1
-#             logger.debug(f"Map depth {mapdepth}")
-#             continue
-#         if( i >= 2 and mapdepth >= 1 and tokens[i].string == "}"):
-#             mapdepth -= 1
-#             logger.debug(f"Map depth {mapdepth}")
-#             continue
-
-#         # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
-#         if(mapdepth != 0):
-#             continue
-
-#         # Similar logic for fstrings: We check for entry, check if inside to push the token, and check for exit
-#         # Im not sure if this is the best way to do it, but it works
-
-#         if(j.type == 59):
-#             fstringdepth += 1
-#             logger.debug(f"fstring depth {fstringdepth}")
-            
-        
-#         if(fstringdepth >= 1):
-#             newTokens.append(j)
-        
-#         if(j.type == 61):
-#             fstringdepth -= 1
-#             logger.debug(f"fstring depth {fstringdepth}")
-#             continue
-
-#         if(fstringdepth != 0):
-#             continue
