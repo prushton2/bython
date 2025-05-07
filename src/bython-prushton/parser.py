@@ -1,6 +1,6 @@
 import re
 import os
-from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, TokenInfo
+from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, TokenInfo
 from tokenize import open as topen;
 import logging
 
@@ -42,7 +42,7 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     newTokens = clean_whitespace(newTokens)
 
     for(i, j) in enumerate(newTokens):
-        if(i >= 1 and j.type in [1, 2] and newTokens[i-1].type in [1, 2]):
+        if(i >= 1 and j.type in [NAME, NUMBER, FSTRING_START] and newTokens[i-1].type in [NAME, NUMBER]):
             outfile.write(" ")
         outfile.write(j.string)
 
@@ -69,16 +69,21 @@ def parse_indentation(tokens):
     newTokens = []
     indentationLevel = 0
     nonScopeCurlyDepth = 0
-    lineStartsWithScope = False
+    lineStartsWithScope = None
 
     for i, j in enumerate(tokens):
         
         if(j.string == "\n"):
-            lineStartsWithScope = False
-        
-        if(j.string in ["if", "elif", "else", "for", "while", "try", "except", "finally", "with", "def", "class"]):
+            lineStartsWithScope = None
+
+        # We check if the token string is a string that starts a scope
+        # This allows for indentation, curlies, etc to not get in the way
+        if(j.string in ["if", "elif", "else", "for", "while", "try", "except", "finally", "with", "def", "class"] and lineStartsWithScope == None):
             lineStartsWithScope = True
-        
+        elif(j.type == NAME and lineStartsWithScope == None): # else it doesnt start a scope
+            lineStartsWithScope = False
+
+
         # If we encounter a curly after a token that starts a scope, we start a scope aswell. Else, we are in a map or smth so mark that down
         if (j.string == "{"):
             if(lineStartsWithScope):
