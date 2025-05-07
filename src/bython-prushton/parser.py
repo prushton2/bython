@@ -1,6 +1,7 @@
 import re
 import os
-from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, TokenInfo
+from tokenize import tokenize, tok_name, TokenInfo, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, NEWLINE, COMMENT, NL, OP
+
 from tokenize import open as topen;
 import logging
 
@@ -54,7 +55,7 @@ def gen_indent(indentationLevel):
     for i in range(indentationLevel):
         arr.append(
             TokenInfo(
-                type=5,
+                type=INDENT,
                 string='    ',
                 start=(),
                 end=(),
@@ -91,7 +92,7 @@ def parse_indentation(tokens):
                 indentationLevel += 1
                 newTokens.append(
                     TokenInfo(
-                        type=55,
+                        type=OP,
                         string=":",
                         start=j.start,
                         end=j.end,
@@ -111,7 +112,7 @@ def parse_indentation(tokens):
                 prevToken = newTokens[-1]
                 
                 # check if the token matches either newline, a comment, or an indent
-                while prevToken.type in [4,5,62,63]:
+                while prevToken.type in [NEWLINE, INDENT, COMMENT, NL]:
                     i -= 1
                     prevToken = newTokens[i]
 
@@ -120,7 +121,7 @@ def parse_indentation(tokens):
                     logger.debug(f"Found empty block, inserted pass")
                     newTokens.append(
                         TokenInfo(
-                            type=1,
+                            type=NAME,
                             string="pass",
                             start=(),
                             end=(),
@@ -129,7 +130,7 @@ def parse_indentation(tokens):
                     )
                 newTokens.append(
                     TokenInfo(
-                        type=4,
+                        type=NEWLINE,
                         string="\n",
                         start=(),
                         end=(),
@@ -160,7 +161,7 @@ def parse_and_or(tokens):
             logger.debug(f"Converted && to and")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="and",
                     start=(),
                     end=(),
@@ -176,7 +177,7 @@ def parse_and_or(tokens):
             logger.debug(f"Converted || to or")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="or",
                     start=(),
                     end=(),
@@ -202,7 +203,7 @@ def parse_true_false(tokens):
             logger.debug(f"converted true to True")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="True",
                     start=(),
                     end=(),
@@ -215,7 +216,7 @@ def parse_true_false(tokens):
             logger.debug(f"converted false to False")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="False",
                     start=(),
                     end=(),
@@ -228,7 +229,7 @@ def parse_true_false(tokens):
             logger.debug(f"converted null to None")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="None",
                     start=(),
                     end=(),
