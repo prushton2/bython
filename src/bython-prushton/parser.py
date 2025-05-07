@@ -108,16 +108,18 @@ def parse_indentation(tokens):
             if(nonScopeCurlyDepth == 0):
                 logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
                 indentationLevel -= 1
+
+                # One case we have to watch for is empty scopes. These need a pass statement to parse in python, so we crawl backwards to check if we need a pass statement
                 i = -1
                 prevToken = newTokens[-1]
                 
-                # check if the token matches either newline, a comment, or an indent
+                # crawl backwards while token matches either newline, a comment, or an indent
                 while prevToken.type in [NEWLINE, INDENT, COMMENT, NL]:
                     i -= 1
                     prevToken = newTokens[i]
 
-                
-                if(prevToken.string == ":"): # ew
+                # If we hit the colon, its an empty block so we insert a pass 
+                if(prevToken.string == ":"):
                     logger.debug(f"Found empty block, inserted pass")
                     newTokens.append(
                         TokenInfo(
@@ -128,6 +130,7 @@ def parse_indentation(tokens):
                             line=""
                         )
                     )
+                # Append a newline for good measure (empty lines are removed later)
                 newTokens.append(
                     TokenInfo(
                         type=NEWLINE,
