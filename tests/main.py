@@ -29,6 +29,7 @@ def main():
             expected_out = file.read()
             if(stdout == expected_out):
                 testspassed += 1
+                print(f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT} \nTEST PASSED {test} {colorama.Fore.RESET}{colorama.Style.NORMAL}")
             else:
                 print(colorama.Fore.RED + colorama.Style.BRIGHT + "\nTEST FAILED ")
                 print(f"{colorama.Style.NORMAL}    {test}\n    Expected\n{colorama.Fore.RESET}{expected_out}\n    {colorama.Fore.RED}Received\n{colorama.Fore.RESET}{stdout}\n    {colorama.Fore.RED}from {" ".join(command)}")
@@ -66,6 +67,7 @@ def main():
             expected_out = out.read()
             if(stdout == expected_out):
                 testspassed += 1
+                print(f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT} \nTEST PASSED {test} {colorama.Fore.RESET}{colorama.Style.NORMAL}")
             else:
                 print(colorama.Fore.RED + colorama.Style.BRIGHT + "\nTEST FAILED ")
                 print(f"{colorama.Style.NORMAL}    {test}\n    Expected\n{colorama.Fore.RESET}{expected_out}\n    {colorama.Fore.RED}Received\n{colorama.Fore.RESET}{stdout}\n    {colorama.Fore.RED}from {" ".join(command)}")
@@ -77,7 +79,7 @@ def main():
     if(testspassed == totaltests):
         print(f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT} 0 TESTS FAILED ({totaltests} tests ran)\n\n{colorama.Fore.RESET}")
     else:
-        print(f"{colorama.Fore.RED}{colorama.Style.BRIGHT} {totaltests - testspassed} TEST{"" if totaltests - testspassed == 1 else "S"} FAILED{colorama.Fore.RESET}\n\n")
+        print(f"{colorama.Fore.RED}{colorama.Style.BRIGHT} {totaltests - testspassed}/{totaltests} TEST{"" if totaltests - testspassed == 1 else "S"} FAILED{colorama.Fore.RESET}\n\n")
 
     print(colorama.Style.NORMAL)
 

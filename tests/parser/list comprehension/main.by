@@ -1,0 +1,9 @@
+def main() {
+    arr = [2, 3, 4, 5]
+    arr2 = [i * 2 for i in arr]
+    print(arr2)
+}
+
+if(__name__ == "__main__") {
+    main()
+}

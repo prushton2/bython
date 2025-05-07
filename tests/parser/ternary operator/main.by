@@ -1,0 +1,8 @@
+def main() {
+    val = False
+    print(val if val else f"{val} is False!")
+}
+
+if(__name__ == "__main__") {
+    main()
+}

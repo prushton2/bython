@@ -1,10 +1,11 @@
 map_example = {
-    "a": {
-        "b": "c"
-    }
+    "a": None
 }
 
 def main() {
+    map_example["a"] = {
+        "b": "c"
+    }
     print(map_example["a"]["b"])
 }
 
