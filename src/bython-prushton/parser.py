@@ -1,78 +1,8 @@
 import re
 import os
-from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, TokenInfo
+from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, TokenInfo
 from tokenize import open as topen;
 import logging
-
-"""
-Python module for converting bython code to python code.
-"""
-
-def _ends_in_by(word):
-    """
-    Returns True if word ends in .by, else False
-
-    Args:
-        word (str):     Filename to check
-
-    Returns:
-        boolean: Whether 'word' ends with 'by' or not
-    """
-    return word[-3:] == ".by"
-
-
-def _change_file_name(name, outputname=None):
-    """
-    Changes *.by filenames to *.py filenames. If filename does not end in .by, 
-    it adds .py to the end.
-
-    Args:
-        name (str):         Filename to edit
-        outputname (str):   Optional. Overrides result of function.
-
-    Returns:
-        str: Resulting filename with *.py at the end (unless 'outputname' is
-        specified, then that is returned).
-    """
-
-    # If outputname is specified, return that
-    if outputname is not None:
-        return outputname
-
-    # Otherwise, create a new name
-    if _ends_in_by(name):
-        return name[:-3] + ".py"
-
-    else:
-        return name + ".py"
-
-
-def parse_imports(filename):
-    """
-    Reads the file, and scans for imports. Returns all the assumed filename
-    of all the imported modules (ie, module name appended with ".by")
-
-    Args:
-        filename (str):     Path to file
-
-    Returns:
-        list of str: All imported modules, suffixed with '.by'. Ie, the name
-        the imported files must have if they are bython files.
-    """
-    infile = open(filename, 'r')
-    infile_str = ""
-
-    for line in infile:
-        infile_str += line
-
-
-    imports = re.findall(r"(?<=import\s)[\w.]+(?=;|\s|$)", infile_str)
-    imports2 = re.findall(r"(?<=from\s)[\w.]+(?=\s+import)", infile_str)
-
-    imports_with_suffixes = [im + ".by" for im in imports + imports2]
-
-    return imports_with_suffixes
-
 
 def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_imports=None):
     """
@@ -99,13 +29,11 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     tokenfile = open(infilepath, 'rb')
     tokens = list(tokenize(tokenfile.readline))
 
-    # for i in tokens:
-    #     print(i)
-
     tokens.pop(0) #this is the encoding scheme which i dont care about (hopefully)
 
+
     newTokens = parse_indentation(tokens)
-    
+
     newTokens = parse_and_or(newTokens)
 
     if(parsetruefalse):
@@ -114,7 +42,7 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     newTokens = clean_whitespace(newTokens)
 
     for(i, j) in enumerate(newTokens):
-        if(i >= 1 and j.type == 1 and newTokens[i-1].type == 1):
+        if(i >= 1 and j.type in [NAME, NUMBER, FSTRING_START] and newTokens[i-1].type in [NAME, NUMBER]):
             outfile.write(" ")
         outfile.write(j.string)
 
@@ -140,102 +68,78 @@ def parse_indentation(tokens):
     logger = logging.getLogger()
     newTokens = []
     indentationLevel = 0
-    mapdepth = 0
-    fstringdepth = 0
+    nonScopeCurlyDepth = 0
+    lineStartsWithScope = None
 
     for i, j in enumerate(tokens):
         
-        # We find the start of a map. We need to set depth to 1, add the { token, and done
-        if( i >= 2 and tokens[i-2].type == 1 and tokens[i-1].string == "=" and j.string == "{"):
-            mapdepth = 1
-            newTokens.append(j)
-            logger.debug("Entered map")
-            continue
+        if(j.string == "\n"):
+            lineStartsWithScope = None
 
-        # We're inside a map, so we add the token
-        if(mapdepth >= 1):
-            newTokens.append(j)
+        # We check if the token string is a string that starts a scope
+        # This allows for indentation, curlies, etc to not get in the way
+        if(j.string in ["if", "elif", "else", "for", "while", "try", "except", "finally", "with", "def", "class"] and lineStartsWithScope == None):
+            lineStartsWithScope = True
+        elif(j.type == NAME and lineStartsWithScope == None): # else it doesnt start a scope
+            lineStartsWithScope = False
 
-        # We update how deep we are in the map. If this changes, we're done 
-        if( i >= 2 and mapdepth >= 1 and tokens[i].string == "{"):
-            mapdepth += 1
-            logger.debug(f"Map depth {mapdepth}")
-            continue
-        if( i >= 2 and mapdepth >= 1 and tokens[i].string == "}"):
-            mapdepth -= 1
-            logger.debug(f"Map depth {mapdepth}")
-            continue
 
-        # if we're inside a map, we've added the token and we have to ignore the curlies, so we're done
-        if(mapdepth != 0):
-            continue
-
-        # Similar logic for fstrings: We check for entry, check if inside to push the token, and check for exit
-        # Im not sure if this is the best way to do it, but it works
-
-        if(j.type == 59):
-            fstringdepth += 1
-            logger.debug(f"fstring depth {fstringdepth}")
-            
-        
-        if(fstringdepth >= 1):
-            newTokens.append(j)
-        
-        if(j.type == 61):
-            fstringdepth -= 1
-            logger.debug(f"fstring depth {fstringdepth}")
-            continue
-
-        if(fstringdepth != 0):
-            continue
-
+        # If we encounter a curly after a token that starts a scope, we start a scope aswell. Else, we are in a map or smth so mark that down
         if (j.string == "{"):
-            logger.debug(f"Indentation level now {indentationLevel+1} (was {indentationLevel})")
-            indentationLevel += 1
-            newTokens.append(
-                TokenInfo(
-                    type=55,
-                    string=":",
-                    start=j.start,
-                    end=j.end,
-                    line=j.line
-                )
-            )
-            continue
-
-        if(j.string == "}"):
-            logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
-            indentationLevel -= 1
-            i = -1
-            prevToken = newTokens[-1]
-            
-            while prevToken.type in [4,5,63]:
-                i -= 1
-                prevToken = newTokens[i]
-
-            
-            if(prevToken.string == ":"):
-                logger.debug(f"Found empty block, inserted pass")
+            if(lineStartsWithScope):
+                logger.debug(f"Indentation level now {indentationLevel+1} (was {indentationLevel})")
+                indentationLevel += 1
                 newTokens.append(
                     TokenInfo(
-                        type=1,
-                        string="pass",
+                        type=55,
+                        string=":",
+                        start=j.start,
+                        end=j.end,
+                        line=j.line
+                    )
+                )
+                continue
+            else:
+                nonScopeCurlyDepth += 1
+                
+        # Same idea here: If our close curly isnt inside something else (map, fstring) then we dedent
+        if(j.string == "}"):
+            if(nonScopeCurlyDepth == 0):
+                logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
+                indentationLevel -= 1
+                i = -1
+                prevToken = newTokens[-1]
+                
+                # check if the token matches either newline, a comment, or an indent
+                while prevToken.type in [4,5,62,63]:
+                    i -= 1
+                    prevToken = newTokens[i]
+
+                
+                if(prevToken.string == ":"): # ew
+                    logger.debug(f"Found empty block, inserted pass")
+                    newTokens.append(
+                        TokenInfo(
+                            type=1,
+                            string="pass",
+                            start=(),
+                            end=(),
+                            line=""
+                        )
+                    )
+                newTokens.append(
+                    TokenInfo(
+                        type=4,
+                        string="\n",
                         start=(),
                         end=(),
                         line=""
                     )
                 )
-            newTokens.append(
-                TokenInfo(
-                    type=4,
-                    string="\n",
-                    start=(),
-                    end=(),
-                    line=""
-                )
-            )
-            newTokens.extend(gen_indent(indentationLevel))
-            continue
+                newTokens.extend(gen_indent(indentationLevel))
+                continue
+            else:
+                nonScopeCurlyDepth -= 1
         
 
         newTokens.append(j)
