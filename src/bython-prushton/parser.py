@@ -75,6 +75,7 @@ def parse_indentation(tokens):
     for i, j in enumerate(tokens):
         
         if(j.string == "\n"):
+            logger.debug(j.line)
             lineStartsWithScope = None
 
         # We check if the token string is a string that starts a scope
