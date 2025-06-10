@@ -32,6 +32,7 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
 
     tokens.pop(0) #this is the encoding scheme which i dont care about (hopefully)
 
+    
 
     newTokens = parse_indentation(tokens)
 
