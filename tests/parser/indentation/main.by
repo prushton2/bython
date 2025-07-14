@@ -11,6 +11,18 @@ def main() {
     } else {
         print("a is 3")
     }
+
+    if a == 2
+    {print("A is 2")}
+
+
+    else
+
+
+    {
+        print("A isnt 2")
+    }
+
     print("done")
 }
 
