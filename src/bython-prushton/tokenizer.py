@@ -1,3 +1,6 @@
+"""
+This is for looking at tokens
+"""
 import sys
 import json
 from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, TokenInfo

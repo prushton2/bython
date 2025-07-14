@@ -1,6 +1,7 @@
 import re
 import os
-from tokenize import tokenize, tok_name, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, TokenInfo
+from tokenize import tokenize, tok_name, TokenInfo, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, NEWLINE, COMMENT, NL, OP
+
 from tokenize import open as topen;
 import logging
 
@@ -54,7 +55,7 @@ def gen_indent(indentationLevel):
     for i in range(indentationLevel):
         arr.append(
             TokenInfo(
-                type=5,
+                type=INDENT,
                 string='    ',
                 start=(),
                 end=(),
@@ -91,7 +92,7 @@ def parse_indentation(tokens):
                 indentationLevel += 1
                 newTokens.append(
                     TokenInfo(
-                        type=55,
+                        type=OP,
                         string=":",
                         start=j.start,
                         end=j.end,
@@ -107,29 +108,32 @@ def parse_indentation(tokens):
             if(nonScopeCurlyDepth == 0):
                 logger.debug(f"Indentation level now {indentationLevel-1} (was {indentationLevel})")
                 indentationLevel -= 1
+
+                # One case we have to watch for is empty scopes. These need a pass statement to parse in python, so we crawl backwards to check if we need a pass statement
                 i = -1
                 prevToken = newTokens[-1]
                 
-                # check if the token matches either newline, a comment, or an indent
-                while prevToken.type in [4,5,62,63]:
+                # crawl backwards while token matches either newline, a comment, or an indent
+                while prevToken.type in [NEWLINE, INDENT, COMMENT, NL]:
                     i -= 1
                     prevToken = newTokens[i]
 
-                
-                if(prevToken.string == ":"): # ew
+                # If we hit the colon, its an empty block so we insert a pass 
+                if(prevToken.string == ":"):
                     logger.debug(f"Found empty block, inserted pass")
                     newTokens.append(
                         TokenInfo(
-                            type=1,
+                            type=NAME,
                             string="pass",
                             start=(),
                             end=(),
                             line=""
                         )
                     )
+                # Append a newline for good measure (empty lines are removed later)
                 newTokens.append(
                     TokenInfo(
-                        type=4,
+                        type=NEWLINE,
                         string="\n",
                         start=(),
                         end=(),
@@ -160,7 +164,7 @@ def parse_and_or(tokens):
             logger.debug(f"Converted && to and")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="and",
                     start=(),
                     end=(),
@@ -176,7 +180,7 @@ def parse_and_or(tokens):
             logger.debug(f"Converted || to or")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="or",
                     start=(),
                     end=(),
@@ -202,7 +206,7 @@ def parse_true_false(tokens):
             logger.debug(f"converted true to True")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="True",
                     start=(),
                     end=(),
@@ -215,7 +219,7 @@ def parse_true_false(tokens):
             logger.debug(f"converted false to False")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="False",
                     start=(),
                     end=(),
@@ -228,7 +232,7 @@ def parse_true_false(tokens):
             logger.debug(f"converted null to None")
             newTokens.append(
                 TokenInfo(
-                    type=1,
+                    type=NAME,
                     string="None",
                     start=(),
                     end=(),

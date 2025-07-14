@@ -1,0 +1,28 @@
+def main() {
+    
+    le_map = [
+        {
+            "k": "subway",
+            "v": "yes",
+            "out": "subway"
+        },{
+            "k": "light_rail",
+            "v": "yes",
+            "out": "subway"
+        },{
+            "k": "healthcare",
+            "v": "hospital",
+            "out": "hospital"
+        },{
+            "k": "brand",
+            "v": "Raising Cane's",
+            "out": "raisingcanes"
+        }
+    ]
+
+    print(le_map[0]["k"])
+}
+
+if(__name__ == "__main__") {
+    main()
+}
