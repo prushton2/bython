@@ -4,6 +4,11 @@ def main2() {
     
 }
 
+def main3()
+{
+    
+}
+
 def second() {
     print("done")
 }

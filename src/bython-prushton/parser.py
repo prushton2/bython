@@ -1,6 +1,6 @@
 import re
 import os
-from tokenize import tokenize, tok_name, TokenInfo, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, NEWLINE, COMMENT, NL, OP
+from tokenize import tokenize, tok_name, TokenInfo, INDENT, DEDENT, NAME, NUMBER, FSTRING_START, FSTRING_END, NEWLINE, COMMENT, NL, OP
 
 from tokenize import open as topen;
 import logging
@@ -70,12 +70,124 @@ def parse_indentation(tokens):
     newTokens = []
     indentationLevel = 0
     nonScopeCurlyDepth = 0
+    atLineStart = True
+    state = "Searching"
+
+    # States:
+    # Searching: Find a statement that defines a block (if, else, ...) but only at the start of a line
+    # Find Curly: Find the curly brace associated with the statement
+
+    for i, j in enumerate(tokens):
+
+        if(len(newTokens) >= 1 and newTokens[-1].string == "\n"):
+            logger.debug(f"Newline")
+            newTokens.extend(gen_indent(indentationLevel))
+            # atLineStart = True
+        
+        if(j.type == FSTRING_START):
+            nonScopeCurlyDepth += 1
+            newTokens.append(j)
+            continue
+
+        elif(j.type == FSTRING_END):
+            nonScopeCurlyDepth -= 1
+            newTokens.append(j)
+            continue
+
+
+        if(state == "Searching"):
+
+            # Do we meet conditions for the next state?
+            if(j.string in ["if", "elif", "else", "for", "while", "try", "except", "finally", "with", "def", "class"] and 
+               (len(newTokens) == 0 or newTokens[-1].type in [OP, INDENT, DEDENT, NEWLINE, NL])):
+                state = "Find Curly"
+                newTokens.append(j)
+            
+            # This is for curlies part of scopes. We pretty much just delete them.
+            elif(j.string == "}" and nonScopeCurlyDepth == 0):
+                indentationLevel -= 1
+
+                # If the previous token is an indent, we delete it. This turns `\t\t} else {` into `\telse:` instead of `\t\telse:`, which wouldnt work.
+                if(newTokens[-1].type in [INDENT, DEDENT]):
+                    newTokens.pop()
+
+                # This is for inserting pass. We just crawl back and find the first real token or :
+                i = len(newTokens)-1
+                prevToken = newTokens[i]
+                while prevToken.type in [NEWLINE, INDENT, COMMENT, NL]:
+                    i -= 1
+                    prevToken = newTokens[i]
+
+                # If we hit the colon, its an empty block so we insert a pass 
+                if(prevToken.string == ":"):
+                    logger.debug(f"Found empty block, inserted pass")
+                    newTokens.insert(i+1,
+                        TokenInfo(
+                            type=NAME,
+                            string="pass",
+                            start=(),
+                            end=(),
+                            line=""
+                        )
+                    )
+                # Append a newline for good measure (empty lines are removed later)
+                newTokens.insert(i+2,
+                    TokenInfo(
+                        type=NEWLINE,
+                        string="\n",
+                        start=(),
+                        end=(),
+                        line=""
+                    )
+                )
+
+            # This catches curlies present in maps/dicts because we arent in the find curly state, and we just increment/decrement NSCD to ignore them
+            elif(j.string == "{"):
+                nonScopeCurlyDepth += 1
+                newTokens.append(j)
+
+            elif(j.string == "}" and nonScopeCurlyDepth != 0):
+                nonScopeCurlyDepth -= 1
+                newTokens.append(j)
+
+            else:
+                newTokens.append(j)
+
+        elif(state == "Find Curly"):
+            if(j.string == "{" and nonScopeCurlyDepth == 0):
+
+                # Backtrack and delete tokens up to the previous block so that `def main()\n\t{\n` becomes `def main():\n` instead of `def main()\n\t:\n`
+                while(newTokens[-1].type in [INDENT, DEDENT, NL, NEWLINE]):
+                    newTokens.pop()
+
+                newTokens.append(
+                    TokenInfo(
+                        type=OP,
+                        string=":",
+                        start=j.start,
+                        end=j.end,
+                        line=j.line
+                    )
+                )
+                indentationLevel += 1
+                state = "Searching"
+            else:
+                newTokens.append(j)
+
+    return newTokens
+
+
+
+def parse_indentation2(tokens):
+    logger = logging.getLogger()
+    newTokens = []
+    indentationLevel = 0
+    nonScopeCurlyDepth = 0
     lineStartsWithScope = None
 
     for i, j in enumerate(tokens):
         
         if(j.string == "\n"):
-            logger.debug(j.line)
             lineStartsWithScope = None
 
         # We check if the token string is a string that starts a scope
