@@ -48,9 +48,6 @@ def main():
     argparser.add_argument("-t", "--truefalse",
         help="adds support for lower case true/false, aswell as null for None",
         action="store_true")
-    argparser.add_argument("-2", "--python2",
-        help="use python2 instead of python3 (default)",
-        action="store_true")
     argparser.add_argument("-e", "--entry-point",
         type=str, 
         help="Specify entry point for transpiling a directory, no entry point will only transpile the files",
