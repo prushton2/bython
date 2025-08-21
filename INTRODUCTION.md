@@ -18,8 +18,26 @@ This document gives a more thorough introduction to Bython.
 Bython is available from PyPI, so a call to pip should do the trick:
 
 ``` bash
-$ git clone https://github.com/prushton2/bython
-$ sudo make install
+$ python -m pip install bython-prushton
+```
+
+For the 8 NixOS users, add this to your flake / shell
+
+```nix
+bython-prushton = pkgs.python313Packages.buildPythonPackage rec {
+    pname = "bython_prushton";
+    version = "1.3.1"; # Use the latest version
+    format = "pyproject";
+
+    buildInputs = [
+      pkgs.python313Packages.hatchling
+    ];
+
+    src = pkgs.python313Packages.fetchPypi{
+      inherit version pname;
+      sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Enter the hash NixOS tells you to use here
+    };
+  };
 ```
 
 Bython should now be available from the shell.
