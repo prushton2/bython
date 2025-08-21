@@ -21,7 +21,7 @@ Bython is available from PyPI, so a call to pip should do the trick:
 $ python -m pip install bython-prushton
 ```
 
-For the 8 NixOS users, add this to your flake / shell
+For the 8 Nix users, add this to your flake / shell
 
 ```nix
 bython-prushton = pkgs.python313Packages.buildPythonPackage rec {
@@ -35,12 +35,12 @@ bython-prushton = pkgs.python313Packages.buildPythonPackage rec {
 
     src = pkgs.python313Packages.fetchPypi{
       inherit version pname;
-      sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Enter the hash NixOS tells you to use here
+      sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Enter the hash Nix tells you to use here
     };
   };
 ```
 
-Bython should now be available from the shell.
+Bython should now be available.
 
 # 1 - The basics
 Bython is pretty much Python, but instead of using colons and indentation to create blocks of code, we instead use curly braces. A simple example of some Bython code should make this clear:
