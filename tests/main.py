@@ -79,7 +79,7 @@ def main():
     if(testspassed == totaltests):
         print(f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT} 0 TESTS FAILED ({totaltests} tests ran)\n\n{colorama.Fore.RESET}")
     else:
-        print(f"{colorama.Fore.RED}{colorama.Style.BRIGHT} {totaltests - testspassed}/{totaltests} TEST{"" if totaltests - testspassed == 1 else "S"} FAILED{colorama.Fore.RESET}\n\n")
+        print(f"{colorama.Fore.RED}{colorama.Style.BRIGHT} {totaltests - testspassed}/{totaltests} TESTS FAILED{colorama.Fore.RESET}\n\n")
 
     print(colorama.Style.NORMAL)
 

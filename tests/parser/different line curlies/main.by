@@ -1,0 +1,15 @@
+def main() {
+    val = False
+    if val == False
+    {
+        print("This is a test")
+    }
+    else
+    {
+        print("This is not a test")
+    }
+}
+
+if(__name__ == "__main__") {
+    main()
+}
