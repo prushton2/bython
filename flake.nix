@@ -13,6 +13,9 @@
       packages = with pkgs; [
         python313
         python313Packages.colorama
+        python313Packages.hatchling
+        python313Packages.build
+        python313Packages.twine
       ];
     };
   };
