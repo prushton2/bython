@@ -144,7 +144,7 @@ def main():
     
     if cmd_args.entry_point:
         logger.info(f"Running `python {cmd_args.output[0]+cmd_args.entry_point[0]}`")
-        subprocess.run(["python", cmd_args.output[0]+"/"+cmd_args.entry_point[0]])
+        subprocess.run(["python", os.path.join(cmd_args.output[0], cmd_args.entry_point[0])])
 
 if __name__ == '__main__':
     main()
