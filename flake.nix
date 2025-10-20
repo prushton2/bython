@@ -7,6 +7,21 @@
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
+
+    bython-prushton = pkgs.python313Packages.buildPythonPackage rec {
+      pname = "bython_prushton";
+      version = "1.3.1";
+      format = "pyproject";
+
+      buildInputs = [
+        pkgs.python313Packages.hatchling
+      ];
+
+      src = pkgs.python313Packages.fetchPypi{
+        inherit version pname;
+        sha256 = "sha256-nivSLT650L6QddLFsrhYzQhgXGGqQ1zT49BLK2Dr2f0=";
+      };
+    };
   in
   {
     devShells.x86_64-linux.default = pkgs.mkShell {
@@ -18,5 +33,7 @@
         python313Packages.twine
       ];
     };
+
+    packages.x86_64-linux.default = bython-prushton;
   };
 }
