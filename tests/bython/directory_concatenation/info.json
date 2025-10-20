@@ -1,0 +1,5 @@
+{
+    "command": ["../tests/bython/directory_concatenation/src", "-o", "../tests/bython/directory_concatenation/dist", "-e", "main.py"],
+    "runPython": false,
+    "outdir": "dist"
+}

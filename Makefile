@@ -1,11 +1,3 @@
-install:
-	make clean
-	pyinstaller --onefile ./src/bython-prushton2/bython.py
-	mv ./dist/bython /bin/bython
-	pyinstaller --onefile ./src/bython-prushton2/py2by.py
-	mv ./dist/py2by /bin/py2by
-	make clean
-
 uninstall:
 	rm /bin/bython
 	rm /bin/by2py
@@ -30,10 +22,10 @@ packagebuild:
 packagedeploytest:
 	python3 -m twine upload --repository testpypi dist/* --verbose
 
-packagedeploy:
+packagedeployprod:
 	python3 -m twine upload --repository pypi dist/* --verbose
 
 packageall:
 	make packagebuild
 	make packagedeploytest
-	make packagedeploy
+	make packagedeployprod

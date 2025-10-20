@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from . import parser
 
-VERSION_NUMBER = "1.1.6"
+VERSION_NUMBER = "1.3.1"
 logging.basicConfig(format='%(funcName)s: %(message)s')
 logger = logging.getLogger()
 
@@ -83,7 +83,7 @@ def main():
 
     # Ensure existence of a build directory
     if cmd_args.output == None:
-        cmd_args.output = ["build/"]
+        cmd_args.output = ["dist/"]
 
     # Delete Build Directory
     try:
@@ -144,7 +144,7 @@ def main():
     
     if cmd_args.entry_point:
         logger.info(f"Running `python {cmd_args.output[0]+cmd_args.entry_point[0]}`")
-        subprocess.run(["python", cmd_args.output[0]+cmd_args.entry_point[0]])
+        subprocess.run(["python", os.path.join(cmd_args.output[0], cmd_args.entry_point[0])])
 
 if __name__ == '__main__':
     main()
