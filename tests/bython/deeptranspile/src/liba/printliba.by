@@ -1,3 +1,4 @@
-def printa():
+def printa() {
     print("Hello from liba")
     return 42
+}

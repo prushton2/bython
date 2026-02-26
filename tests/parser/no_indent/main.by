@@ -3,3 +3,8 @@ print("This is a test ", end='')
 for i in range(10) {
     print("a", end='')
 }
+
+if true == true {}
+
+
+print(" This test passed", end='')

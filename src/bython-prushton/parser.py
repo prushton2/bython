@@ -39,6 +39,7 @@ def parse_file(infilepath, outfilepath, parsetruefalse,  utputname=None, change_
     if(parsetruefalse):
         newTokens = parse_true_false(newTokens)
 
+
     newTokens = clean_whitespace(newTokens)
 
     for(i, j) in enumerate(newTokens):
@@ -78,26 +79,29 @@ def parse_indentation(tokens):
 
     for i, j in enumerate(tokens):
 
+        logger.debug(f"Token: {j}\n    State: {state}")
+
         if(len(newTokens) >= 1 and newTokens[-1].string == "\n"):
             logger.debug(f"Newline")
             newTokens.extend(gen_indent(indentationLevel))
         
         if(j.type == FSTRING_START):
             nonScopeCurlyDepth += 1
+            logger.debug("Appended")
             newTokens.append(j)
             continue
 
         elif(j.type == FSTRING_END):
             nonScopeCurlyDepth -= 1
+            logger.debug("Appended")
             newTokens.append(j)
             continue
 
 
         if(state == "Searching"):
-
             # Do we meet conditions for the next state?
             if(j.string in ["if", "elif", "else", "for", "while", "try", "except", "finally", "with", "def", "class"] and # is this something that starts a scope
-               (len(newTokens) == 0 or newTokens[-1].type in [OP, INDENT, DEDENT, NEWLINE, NL])): # either we are at the start of the file or the previous token is something that would start a line
+               (len(newTokens) == 0 or newTokens[-1].type in [OP, INDENT, DEDENT, NEWLINE, NL])): # AND (either we are at the start of the file or the previous token is something that would start a line)
                 state = "Find Curly"
                 newTokens.append(j)
             
@@ -211,6 +215,7 @@ def parse_and_or(tokens):
             logger.debug(f"Skipped ||")
             continue
 
+        # logger.debug("Appended")
         newTokens.append(j)
     return newTokens
 
@@ -260,11 +265,13 @@ def parse_true_false(tokens):
             )
             continue
 
+        # logger.debug("Appended")
         newTokens.append(j)
     return newTokens
 
 
 def clean_whitespace(tokens):
+    # print(tokens[-2])
     logger = logging.getLogger()
 
     current_line = []
@@ -274,10 +281,10 @@ def clean_whitespace(tokens):
     for i, j in enumerate(tokens):
         current_line.append(j)
 
-        if(not (j.type in [4, 5, 63])):
+        if(not (j.type in [4, 5, 6, 63])): # NL, Indent, Dedent, 
             contains_real_tokens = True
 
-        if(j.string == "\n"):
+        if(j.type == 4):
             logger.debug(f"Newline (append tokens: {contains_real_tokens}, token info: {[token.string for token in current_line]})")
             if(contains_real_tokens):
                 newTokens.extend(current_line)
