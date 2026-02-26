@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from . import parser
 
-VERSION_NUMBER = "1.3.1"
+VERSION_NUMBER = "1.3.2"
 logging.basicConfig(format='%(funcName)s: %(message)s')
 logger = logging.getLogger()
 

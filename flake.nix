@@ -34,6 +34,16 @@
       ];
     };
 
-    packages.x86_64-linux.default = bython-prushton;
+    packages.${system} = {
+      default = bython-prushton;
+      bython-prushton = bython-prushton;
+    };
+
+    legacyPackages.${system} = {
+      python313Packages = {
+        bython-prushton = bython-prushton;
+      };
+    };
+    
   };
 }
